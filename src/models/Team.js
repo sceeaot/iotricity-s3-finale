@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ teamCode:{type:String,required:true,unique:true}, teamName:{type:String,required:true}, members:[String], coins:{type:Number,default:0}, currentStage:{type:Number,default:1}, completedStages:{type:[Number],default:[]}, startTime:{type:Date,default:null}, status:{type:String,enum:['waiting','active','completed'],default:'waiting'} }, {timestamps:true});
+export default mongoose.models.Team || mongoose.model('Team', schema);

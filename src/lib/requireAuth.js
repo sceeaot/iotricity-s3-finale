@@ -1,0 +1,3 @@
+import { getSession } from './session';
+export async function requireTeam() { const session = await getSession(); return session?.user?.role === 'team' ? { user: session.user } : { error: 'Unauthorized', status: 401 }; }
+export async function requireAdmin() { const session = await getSession(); return session?.user?.role === 'admin' ? { user: session.user } : { error: 'Unauthorized', status: 401 }; }

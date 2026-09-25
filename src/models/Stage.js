@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ stageNumber:{type:Number,required:true,unique:true}, title:{type:String,required:true}, message:{type:String,required:true}, puzzle:{type:String,required:true}, successMessage:{type:String,default:''}, correctAnswer:{type:String,required:true}, answerAliases:{type:[String],default:[]}, coinsReward:{type:Number,required:true}, hints:[{text:String,cost:Number}] });
+export default mongoose.models.Stage || mongoose.model('Stage', schema);

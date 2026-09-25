@@ -4,6 +4,9 @@
 IoTRICITY Season 3 event webapp. Next.js full stack, MongoDB database.
 Black background, white text, default Next.js styling only. No UI libraries.
 
+## Checkpoint note
+Some checkpoints in the event flow are intentionally hidden behind a QR code. When a team reaches one of these checkpoints, they must scan the QR code first to reveal that checkpoint's problem statement before continuing.
+
 ---
 
 ## Step 1 - Create Next.js project

@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ teamId:{type:mongoose.Schema.Types.ObjectId,ref:'Team',required:true}, type:{type:String,enum:['earned','spent','hint','penalty','override','reset'],required:true}, amount:{type:Number,required:true}, reason:{type:String,required:true}, timestamp:{type:Date,default:Date.now} });
+export default mongoose.models.Transaction || mongoose.model('Transaction', schema);

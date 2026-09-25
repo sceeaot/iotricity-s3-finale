@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ receiptId:{type:String,required:true,unique:true}, teamId:{type:mongoose.Schema.Types.ObjectId,ref:'Team',required:true}, teamName:{type:String,required:true}, componentId:{type:mongoose.Schema.Types.ObjectId,ref:'Component',required:true}, componentName:{type:String,required:true}, cyberpunkName:{type:String,required:true}, pricePaid:{type:Number,required:true}, purchasedAt:{type:Date,default:Date.now}, dispatched:{type:Boolean,default:false}, dispatchedAt:{type:Date,default:null} });
+export default mongoose.models.Purchase || mongoose.model('Purchase', schema);
