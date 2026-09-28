@@ -246,12 +246,12 @@ export default function ReceiptPage() {
           <CornerMarks size={12} />
 
           {/* Header Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 border-b border-white/10 pb-6 print:border-black">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-6 print:border-black">
             <div>
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 print:hidden" />
                 <p className="text-[11px] font-mono tracking-[0.2em] uppercase text-emerald-400 print:text-black font-semibold">
-                  IOTRICITY // HARDWARE EXCHANGE
+                  IOTRICITY S3
                 </p>
               </div>
               <h1 className="mt-1.5 font-sans text-2xl sm:text-3xl font-bold tracking-tight text-white print:text-black">
@@ -261,81 +261,6 @@ export default function ReceiptPage() {
                 Component issuance and distribution voucher for registered teams.
               </p>
             </div>
-
-            {/* Receipt ID Box */}
-            <div className="self-start sm:self-end text-left sm:text-right">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-white/40 print:text-neutral-500 block">
-                RECEIPT IDENTIFIER
-              </span>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="font-mono text-base sm:text-lg font-bold tracking-wider text-white print:text-black bg-white/5 px-2.5 py-1 border border-white/15 print:border-black">
-                  #{receipt.receiptId}
-                </span>
-                <button
-                  type="button"
-                  onClick={copyReceiptId}
-                  title="Copy Receipt ID"
-                  className="print:hidden p-1.5 border border-white/15 bg-white/5 hover:bg-white/15 text-white/70 hover:text-white transition cursor-pointer"
-                >
-                  {copied ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Status Alert Banner */}
-          <div className="mt-6">
-            {receipt.dispatched ? (
-              <div className="border border-emerald-500/40 bg-emerald-950/30 p-4 text-emerald-300 flex items-center justify-between gap-4 print:border-black print:bg-neutral-100 print:text-black">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full border border-emerald-400/50 bg-emerald-500/20 flex items-center justify-center shrink-0">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="font-sans text-sm font-bold tracking-wider uppercase">
-                      STATUS: DISPATCHED &amp; RELEASED
-                    </h2>
-                    <p className="text-xs text-emerald-400/80 print:text-neutral-600 mt-0.5">
-                      Hardware has been verified and released to team representatives.
-                    </p>
-                  </div>
-                </div>
-                <span className="font-mono text-xs px-2.5 py-1 border border-emerald-500/40 bg-emerald-500/10 uppercase tracking-wider shrink-0 print:border-black">
-                  COMPLETE
-                </span>
-              </div>
-            ) : (
-              <div className="border border-amber-500/40 bg-amber-950/20 p-4 text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:border-black print:bg-neutral-100 print:text-black">
-                <div className="flex items-center gap-3">
-                  <div className="relative h-8 w-8 rounded-full border border-amber-400/50 bg-amber-500/20 flex items-center justify-center shrink-0">
-                    <span className="absolute h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping print:hidden" />
-                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  </div>
-                  <div>
-                    <h2 className="font-sans text-sm font-bold tracking-wider uppercase">
-                      STATUS: PENDING DISPATCH
-                    </h2>
-                    <p className="text-xs text-amber-200/75 print:text-neutral-600 mt-0.5">
-                      Present this receipt at the Hardware Dispatch Desk to collect your modules.
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right sm:text-right font-mono text-xs text-amber-300/80 print:text-black">
-                  WAITING FOR HANDOFF
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Metadata Grid */}
@@ -357,12 +282,6 @@ export default function ReceiptPage() {
               </p>
             </div>
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-white/40 print:text-neutral-500 block">
-                PAYMENT METHOD
-              </span>
-              <p className="mt-1 font-mono text-xs text-white/90 print:text-black">
-                Balance Credits (BC)
-              </p>
             </div>
             <div>
               <span className="text-[10px] font-mono uppercase tracking-wider text-white/40 print:text-neutral-500 block">
@@ -466,48 +385,6 @@ export default function ReceiptPage() {
           </div>
 
           {/* Verification Barcode & Desk Validation Box */}
-          <div className="mt-8 border border-white/10 bg-black/40 p-5 print:border-black print:bg-neutral-50">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-5">
-              {/* Simulated Barcode */}
-              <div className="flex flex-col items-center sm:items-start">
-                <div className="flex items-end gap-[3px] h-10 px-2 py-1 bg-white print:border print:border-black">
-                  {[4, 2, 6, 3, 5, 2, 7, 4, 3, 8, 2, 5, 4, 2, 6, 3, 7, 2, 5, 3, 6, 2, 4, 8, 3, 5].map((h, i) => (
-                    <div
-                      key={i}
-                      className="bg-black w-[2px]"
-                      style={{ height: `${h * 4 + 6}px` }}
-                    />
-                  ))}
-                </div>
-                <span className="font-mono text-[9px] tracking-[0.25em] text-white/40 print:text-neutral-500 mt-1">
-                  *{receipt.receiptId}*
-                </span>
-              </div>
-
-              {/* Instructions */}
-              <div className="text-center sm:text-right max-w-sm">
-                <p className="font-mono text-[10px] uppercase text-white/50 print:text-neutral-600 leading-relaxed">
-                  Present this receipt or Receipt ID at the central component distribution desk. The physical receipt or digital verification code must be inspected prior to hardware release.
-                </p>
-              </div>
-            </div>
-
-            {/* Coordinator Signature Box for Print */}
-            <div className="mt-6 pt-4 border-t border-white/10 grid grid-cols-2 gap-6 print:border-black">
-              <div>
-                <span className="text-[9px] font-mono uppercase text-white/40 print:text-neutral-500 block">
-                  COORDINATOR SIGNATURE
-                </span>
-                <div className="h-8 border-b border-white/20 print:border-black mt-1" />
-              </div>
-              <div>
-                <span className="text-[9px] font-mono uppercase text-white/40 print:text-neutral-500 block">
-                  TEAM REPRESENTATIVE SIGNATURE
-                </span>
-                <div className="h-8 border-b border-white/20 print:border-black mt-1" />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Action Buttons Below Receipt - Hidden on Print */}
