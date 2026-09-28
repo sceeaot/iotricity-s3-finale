@@ -373,20 +373,27 @@ export default function Shop() {
           </a>
 
           <div className="flex items-center gap-3">
+
+            <a
+              href="/dashboard"
+              className="flex h-[38px] items-center justify-center border border-white/20 bg-white px-4 text-xs font-semibold tracking-wider text-black transition hover:bg-white/90 hover:text-black"
+            >
+              CONSOLE
+            </a>
             {/* Cart Header Button */}
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center gap-2 border border-emerald-400/50 bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold tracking-wider text-emerald-300 hover:bg-emerald-500/20 hover:text-white transition cursor-pointer"
+              className="relative flex h-[38px] items-center gap-2 border border-white/25 px-3.5 text-xs font-semibold tracking-wider text-emerald-300 hover:bg-emerald-500/20 hover:text-white transition cursor-pointer"
               title="Open Hardware Cart"
             >
               <CornerMarks size={6} />
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <circle cx="8" cy="21" r="1" />
                 <circle cx="19" cy="21" r="1" />
                 <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
               </svg>
-              <span>CART</span>
+              <span className="text-white">CART</span>
               {cartItems.length > 0 && (
                 <span className="relative flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-400 px-1.5 text-[10px] font-bold text-black">
                   {cartItems.length}
@@ -394,12 +401,7 @@ export default function Shop() {
               )}
             </button>
 
-            <a
-              href="/dashboard"
-              className="flex items-center justify-center border border-white/20 bg-white px-4 py-2 text-xs font-semibold tracking-wider text-black transition hover:bg-white/90 hover:text-black"
-            >
-              CONSOLE
-            </a>
+            
 
             <button
               type="button"
@@ -505,15 +507,6 @@ export default function Shop() {
               </span>
             </button>
           </div>
-
-          {teamProject && (
-            <div className="flex items-center gap-2 text-[11px] font-mono text-emerald-400/90 bg-emerald-950/20 border border-emerald-500/20 px-3.5 py-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>
-                SPEC: {teamCode ? `${teamCode} // ` : ""}{teamProject.projectName}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Search Bar & Module Counter */}
@@ -622,25 +615,12 @@ export default function Shop() {
                     )}
 
                     {item.purchased ? (
-                      <div className="absolute top-2.5 right-2.5 bg-black/85 border border-emerald-500/40 text-emerald-400 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 backdrop-blur-md flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                        <span>PURCHASED</span>
-                      </div>
+                      null
                     ) : isRestricted ? (
                       <div className="absolute top-2.5 right-2.5 bg-black/85 border border-red-500/40 text-red-400 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 backdrop-blur-md">
                         OTHER PROJECT
                       </div>
-                    ) : isOutOfStock ? (
-                      <div className="absolute top-2.5 right-2.5 bg-black/90 border border-red-500/50 text-red-400 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 backdrop-blur-md flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                        <span>OUT OF STOCK</span>
-                      </div>
-                    ) : (
-                      <div className="absolute top-2.5 right-2.5 bg-black/85 border border-emerald-500/40 text-emerald-400 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 backdrop-blur-md flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                        <span>PROJECT SPEC</span>
-                      </div>
-                    )}
+                    ) : null}
 
                     {inCart && (
                       <div className="absolute top-2.5 left-2.5 bg-emerald-500 text-black font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 shadow-md flex items-center gap-1">
@@ -694,16 +674,10 @@ export default function Shop() {
                           <span className="font-sans text-lg font-bold tracking-tight text-white">
                             {item.price}
                           </span>
-                          <span className="text-xs font-mono text-white/40">BC</span>
                         </div>
 
                         {/* Stock status indicator */}
-                        {isOutOfStock ? (
-                          <span className="text-[10px] font-mono uppercase text-red-400 font-semibold px-2 py-0.5 border border-red-500/40 bg-red-950/30 flex items-center gap-1">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                            <span>OUT OF STOCK</span>
-                          </span>
-                        ) : typeof item.stock === "number" && item.stock > 0 && item.stock <= 3 ? (
+                        {typeof item.stock === "number" && item.stock > 0 && item.stock <= 3 ? (
                           <span className="text-[10px] font-mono uppercase text-amber-400 px-1.5 py-0.5 border border-amber-500/30 bg-amber-950/20">
                             ONLY {item.stock} LEFT
                           </span>

@@ -516,22 +516,6 @@ export default function Dashboard() {
                   {/* Stage Info Card */}
                   <div className="relative border border-white/20 bg-black/20 p-5 sm:p-7 backdrop-blur-sm">
                     <CornerMarks />
-                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border border-white/20 bg-white/5 text-white/70">
-                        {data.type || (stageNumber === 2 || stageNumber === 4 ? "Secret Key" : "Direct")}
-                      </span>
-                      {data.requiresKey && (
-                        <span
-                          className={`text-[10px] font-mono tracking-wider px-2 py-0.5 border flex items-center gap-1 ${
-                            data.isPuzzleUnlocked
-                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                              : "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                          }`}
-                        >
-                          {data.isPuzzleUnlocked ? "🔓 Decrypted" : "🔒 Secret Key Required"}
-                        </span>
-                      )}
-                    </div>
                     <h2 className="font-sans text-lg sm:text-2xl font-semibold text-white break-words">
                       {formattedTitle}
                     </h2>
@@ -542,9 +526,9 @@ export default function Dashboard() {
 
                   {/* Question & Answer Card OR Checkpoint Lock Card */}
                   {data.requiresKey && !data.isPuzzleUnlocked ? (
-                    <div className="relative border border-amber-500/30 bg-[#0c0f1d]/90 p-5 sm:p-7 backdrop-blur-sm">
+                    <div className="relative border border-white/20 bg-black/20 p-5 sm:p-7 backdrop-blur-sm">
                       <CornerMarks />
-                      <div className="flex items-center gap-2.5 text-amber-400 mb-2">
+                      <div className="flex items-center gap-2.5 text-white mb-2">
                         <svg
                           width="18"
                           height="18"
@@ -560,7 +544,7 @@ export default function Dashboard() {
                           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                         </svg>
                         <p className="text-[11px] font-sans font-bold tracking-[0.16em] uppercase">
-                          CHECKPOINT ENCRYPTED // SECRET KEY REQUIRED
+                          PUZZLE ENCRYPTED
                         </p>
                       </div>
 
@@ -571,7 +555,7 @@ export default function Dashboard() {
                       </p>
 
                       <form onSubmit={unlockCheckpoint} className="mt-6 flex flex-col gap-3">
-                        <label className="text-[11px] font-sans font-semibold tracking-[0.14em] uppercase text-amber-300/80">
+                        <label className="text-[11px] font-sans font-semibold tracking-[0.14em] uppercase text-white/70">
                           ENTER SECRET KEY
                         </label>
                         <div className="flex flex-col sm:flex-row gap-2.5">
@@ -579,14 +563,14 @@ export default function Dashboard() {
                             type="text"
                             value={checkpointKey}
                             onChange={(e) => setCheckpointKey(e.target.value)}
-                            placeholder="e.g. PIPE-2048"
-                            className="h-[46px] sm:h-[52px] flex-1 border border-amber-500/30 bg-[#080d19]/90 px-4 font-mono text-sm text-white uppercase placeholder:normal-case placeholder:font-sans placeholder:text-white/30 focus:border-amber-400 focus:outline-none transition tracking-wider"
+                            placeholder="Enter Secret Code..."
+                            className="h-[46px] sm:h-[52px] flex-1 border border-white/10 bg-[#080d19]/80 px-4 font-mono text-sm text-white uppercase placeholder:normal-case placeholder:font-sans placeholder:text-white/30 focus:border-white/30 focus:outline-none transition tracking-wider"
                             required
                           />
                           <button
                             type="submit"
                             disabled={checkpointBusy}
-                            className="h-[46px] sm:h-[52px] px-6 bg-amber-400 hover:bg-amber-300 text-[#080d19] font-bold text-xs sm:text-sm tracking-wider uppercase transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shrink-0 flex items-center justify-center gap-2"
+                            className="h-[46px] sm:h-[52px] px-6 bg-white hover:bg-white/85 text-[#080d19] font-bold text-xs sm:text-sm tracking-wider uppercase transition active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 shrink-0 flex items-center justify-center gap-2"
                           >
                             {checkpointBusy ? (
                               "DECRYPTING..."
@@ -623,8 +607,8 @@ export default function Dashboard() {
                         )}
                       </form>
 
-                      <div className="mt-4 pt-4 border-t border-amber-500/20 text-[11px] font-sans text-white/40 flex items-center gap-2">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400/60 animate-pulse" />
+                      <div className="mt-4 pt-4 border-t border-white/10 text-[11px] font-sans text-white/40 flex items-center gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse" />
                         <span>Puzzle statement and answer submissions will unlock once verified.</span>
                       </div>
                     </div>

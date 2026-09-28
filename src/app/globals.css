@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 @import "tailwindcss";
 
 @font-face {
@@ -138,3 +139,43 @@
     display: none !important;
   }
 }
+
+/* Wix Madefor Text applied everywhere except excluded pages (Landing, Team Login, Admin Login) */
+.font-wix-mode,
+.font-wix-mode *,
+.font-wix-mode *::before,
+.font-wix-mode *::after,
+html.font-wix-mode,
+html.font-wix-mode *,
+body.font-wix-mode,
+body.font-wix-mode * {
+  --font-display: "Wix Madefor Text", sans-serif !important;
+  --font-body: "Wix Madefor Text", sans-serif !important;
+  --font-mono: "Wix Madefor Text", sans-serif !important;
+  --font-sans: "Wix Madefor Text", sans-serif !important;
+  font-family: "Wix Madefor Text", sans-serif !important;
+}
+
+.font-wix-mode h1,
+.font-wix-mode h2,
+.font-wix-mode h3,
+.font-wix-mode h4,
+.font-wix-mode h5,
+.font-wix-mode h6,
+.font-wix-mode p,
+.font-wix-mode span,
+.font-wix-mode div,
+.font-wix-mode a,
+.font-wix-mode button,
+.font-wix-mode input,
+.font-wix-mode select,
+.font-wix-mode textarea,
+.font-wix-mode table,
+.font-wix-mode th,
+.font-wix-mode td,
+.font-wix-mode code,
+.font-wix-mode pre,
+.font-wix-mode label {
+  font-family: "Wix Madefor Text", sans-serif !important;
+}
+
