@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const schema = new mongoose.Schema({
-  stageNumber: { type: Number, required: true, unique: true },
+  pathId: { type: String, required: true },
+  stageNumber: { type: Number, required: true },
   title: { type: String, required: true },
   type: { type: String, default: 'Direct' },
   location: { type: String, default: '' },
@@ -16,9 +17,13 @@ const schema = new mongoose.Schema({
   hints: [{ text: String, cost: Number }],
 });
 
+schema.index({ pathId: 1, stageNumber: 1 }, { unique: true });
+
 if (
   mongoose.models.Stage &&
-  (!mongoose.models.Stage.schema?.paths?.wrongPenalty || !mongoose.models.Stage.schema?.paths?.checkpointKey)
+  (!mongoose.models.Stage.schema?.paths?.wrongPenalty ||
+    !mongoose.models.Stage.schema?.paths?.checkpointKey ||
+    !mongoose.models.Stage.schema?.paths?.pathId)
 ) {
   delete mongoose.models.Stage;
 }

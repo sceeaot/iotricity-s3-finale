@@ -5,7 +5,7 @@ import Team from '@/models/Team';
 import Transaction from '@/models/Transaction';
 import { requireTeam } from '@/lib/requireAuth';
 import { generateReceiptId } from '@/lib/generateReceiptId';
-import { isComponentAllowedForTeam } from '@/lib/teamProjects';
+import { isComponentAllowedForTeam, getTeamProjectConfig } from '@/lib/teamProjects';
 
 export async function POST(request) {
   const auth = await requireTeam();
@@ -34,9 +34,10 @@ export async function POST(request) {
     return Response.json({ error: 'One or more requested components were not found in catalog.' }, { status: 404 });
   }
 
-  // Anti-cheat verification: Ensure each component belongs to team's assigned project
+  // Anti-cheat verification: Ensure each component belongs to team's assigned project in MongoDB
+  const projectConfig = await getTeamProjectConfig(team);
   for (const component of components) {
-    if (!isComponentAllowedForTeam(team, component)) {
+    if (!isComponentAllowedForTeam(team, component, projectConfig)) {
       return Response.json(
         {
           error: `ACCESS DENIED: Component "${component.name}" is restricted to another team's project specification.`,

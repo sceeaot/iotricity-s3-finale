@@ -1,5 +1,6 @@
 import connectDB from '@/lib/mongodb';
 import BuildProblem from '@/models/BuildProblem';
+import Team from '@/models/Team';
 import { requireTeam } from '@/lib/requireAuth';
 
 export async function GET() {
@@ -7,8 +8,13 @@ export async function GET() {
   if (auth.error) return Response.json({ error: auth.error }, { status: auth.status });
 
   await connectDB();
-  let problem = await BuildProblem.findOne({ pathId: 'path-01' });
+  const team = await Team.findById(auth.user.id);
+  const pathId = team?.pathId;
 
+  let problem = null;
+  if (pathId) {
+    problem = await BuildProblem.findOne({ pathId });
+  }
   if (!problem) {
     problem = await BuildProblem.findOne();
   }

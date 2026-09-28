@@ -401,7 +401,7 @@ export default function Shop() {
               )}
             </button>
 
-            
+
 
             <button
               type="button"
@@ -466,20 +466,18 @@ export default function Shop() {
             <button
               type="button"
               onClick={() => setActiveTab("project")}
-              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${
-                activeTab === "project"
+              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${activeTab === "project"
                   ? "bg-white text-black border border-white"
                   : "bg-black/25 text-white/60 border border-white/10 hover:border-white/30 hover:text-white"
-              }`}
+                }`}
             >
               <CornerMarks size={6} />
               <span>PROJECT REQUIRED</span>
               <span
-                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${
-                  activeTab === "project"
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${activeTab === "project"
                     ? "bg-black text-white"
                     : "bg-white/10 text-white/70"
-                }`}
+                  }`}
               >
                 {projectComponentsCount}
               </span>
@@ -488,20 +486,18 @@ export default function Shop() {
             <button
               type="button"
               onClick={() => setActiveTab("all")}
-              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${
-                activeTab === "all"
+              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${activeTab === "all"
                   ? "bg-white text-black border border-white"
                   : "bg-black/25 text-white/60 border border-white/10 hover:border-white/30 hover:text-white"
-              }`}
+                }`}
             >
               <CornerMarks size={6} />
               <span>ALL CATALOG</span>
               <span
-                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${
-                  activeTab === "all"
+                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${activeTab === "all"
                     ? "bg-black text-white"
                     : "bg-white/10 text-white/70"
-                }`}
+                  }`}
               >
                 {items.length}
               </span>
@@ -552,8 +548,8 @@ export default function Shop() {
                 {search
                   ? `No components matched your search "${search}".`
                   : activeTab === "project"
-                  ? "No assigned project components found. Switch to All Catalog to view full inventory."
-                  : "No components available in catalog."}
+                    ? "No assigned project components found. Switch to All Catalog to view full inventory."
+                    : "No components available in catalog."}
               </p>
             </div>
           ) : (
@@ -566,15 +562,14 @@ export default function Shop() {
               return (
                 <div
                   key={item._id}
-                  className={`relative border backdrop-blur-sm flex flex-col justify-between transition-all duration-200 group ${
-                    inCart
+                  className={`relative border backdrop-blur-sm flex flex-col justify-between transition-all duration-200 group ${inCart
                       ? "border-emerald-500/60 bg-emerald-950/15 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                       : isRestricted
-                      ? "border-white/10 bg-black/35 opacity-75 hover:border-white/20"
-                      : isOutOfStock && !item.purchased
-                      ? "border-white/10 bg-black/40 opacity-80 hover:border-white/20"
-                      : "border-white/20 bg-black/20 hover:border-white/40"
-                  }`}
+                        ? "border-white/10 bg-black/35 opacity-75 hover:border-white/20"
+                        : isOutOfStock && !item.purchased
+                          ? "border-white/10 bg-black/40 opacity-80 hover:border-white/20"
+                          : "border-white/20 bg-black/20 hover:border-white/40"
+                    }`}
                 >
                   <CornerMarks size={8} />
 
@@ -584,11 +579,10 @@ export default function Shop() {
                       <img
                         src={item.resolvedImage}
                         alt={item.name}
-                        className={`w-full h-full object-contain transition-transform duration-300 ${
-                          isRestricted || (isOutOfStock && !item.purchased)
+                        className={`w-full h-full object-contain transition-transform duration-300 ${isRestricted || (isOutOfStock && !item.purchased)
                             ? "grayscale-[40%] group-hover:scale-100"
                             : "group-hover:scale-105"
-                        }`}
+                          }`}
                         onError={(e) => {
                           const target = e.currentTarget;
                           const fallbackUrl = typedComponentsData[0]?.imageUrl;
@@ -614,14 +608,6 @@ export default function Shop() {
                       </div>
                     )}
 
-                    {item.purchased ? (
-                      null
-                    ) : isRestricted ? (
-                      <div className="absolute top-2.5 right-2.5 bg-black/85 border border-red-500/40 text-red-400 text-[9px] font-mono tracking-wider uppercase px-2 py-0.5 backdrop-blur-md">
-                        OTHER PROJECT
-                      </div>
-                    ) : null}
-
                     {inCart && (
                       <div className="absolute top-2.5 left-2.5 bg-emerald-500 text-black font-mono text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 shadow-md flex items-center gap-1">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -639,15 +625,7 @@ export default function Shop() {
                         <p className="text-[11px] font-mono font-semibold tracking-[0.16em] uppercase text-white/50">
                           {item.resolvedCategory.toUpperCase()}
                         </p>
-                        {isRestricted ? (
-                          <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 border border-red-500/30 bg-red-950/20 text-red-300/90">
-                            LOCKED
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 border border-emerald-500/30 bg-emerald-950/20 text-emerald-300/90">
-                            REQUIRED
-                          </span>
-                        )}
+
                       </div>
 
                       {/* Actual Component Name (No cyberpunk name) */}
@@ -750,11 +728,10 @@ export default function Shop() {
                           <button
                             type="button"
                             onClick={() => toggleCartItem(item)}
-                            className={`h-[44px] px-3 font-bold text-xs tracking-wider uppercase transition cursor-pointer flex items-center justify-center gap-1.5 border ${
-                              inCart
+                            className={`h-[44px] px-3 font-bold text-xs tracking-wider uppercase transition cursor-pointer flex items-center justify-center gap-1.5 border ${inCart
                                 ? "bg-emerald-500 text-black border-emerald-400 hover:bg-emerald-400"
                                 : "bg-black/40 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/15"
-                            }`}
+                              }`}
                           >
                             {inCart ? (
                               <>
@@ -785,8 +762,8 @@ export default function Shop() {
                             {busy === item._id
                               ? "BUYING..."
                               : notEnoughCredits
-                              ? "NO COINS"
-                              : "BUY NOW"}
+                                ? "NO COINS"
+                                : "BUY NOW"}
                           </button>
                         </div>
                       )}

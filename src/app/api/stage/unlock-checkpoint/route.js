@@ -14,7 +14,14 @@ export async function POST(request) {
   const team = await Team.findById(auth.user.id);
   if (!team) return Response.json({ error: 'Team not found' }, { status: 404 });
 
-  const stage = await Stage.findOne({ stageNumber: team.currentStage }).lean();
+  const stageQuery = team.pathId
+    ? { pathId: team.pathId, stageNumber: team.currentStage }
+    : { stageNumber: team.currentStage };
+
+  let stage = await Stage.findOne(stageQuery).lean();
+  if (!stage && team.pathId) {
+    stage = await Stage.findOne({ stageNumber: team.currentStage }).lean();
+  }
   if (!stage) return Response.json({ error: 'No active stage' }, { status: 400 });
 
   if (!stage.checkpointKey) {
@@ -27,10 +34,7 @@ export async function POST(request) {
   if (normalizedInput !== normalizedExpected) {
     return Response.json(
       {
-        error:
-          stage.stageNumber === 2 || stage.stageNumber === 4
-            ? 'Invalid secret key. Ensure you have retrieved the correct key from the physical location.'
-            : 'Invalid secret key. Check with the field operative after providing the correct passphrase.',
+        error: 'Invalid security code. Please check the secret code or passphrase and try again.',
       },
       { status: 400 }
     );

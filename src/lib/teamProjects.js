@@ -1,21 +1,4 @@
-/**
- * Team Project Hardware Mapping & Anti-Cheat Validation
- * Ensures teams can only view by default and purchase components required for their assigned project.
- */
-
-export const TEAM_PROJECT_CONFIG = {
-  TEAM01: {
-    pathId: 'path-01',
-    projectName: 'The Silent Watcher (Perimeter Anomaly Detection)',
-    componentIds: ['esp8266', 'proximity-sensor', 'led'],
-    componentNames: [
-      'ESP8266 (NodeMCU CP2102)',
-      'Inductive Proximity Sensor',
-      'LED 5mm Pack',
-    ],
-  },
-  // Additional teams/paths can be mapped here as the event expands
-};
+import BuildProblem from '@/models/BuildProblem';
 
 /**
  * Normalizes string for case-insensitive matching
@@ -25,51 +8,70 @@ function normalize(str) {
 }
 
 /**
- * Get project requirements configuration for a team
+ * Get project requirements configuration for a team dynamically from MongoDB
+ * @param {Object} team - The team object from DB or session
+ * @returns {Promise<Object|null>}
  */
-export function getTeamProjectConfig(team) {
-  const code = (team?.teamCode || '').toUpperCase().trim();
-  if (TEAM_PROJECT_CONFIG[code]) {
-    return TEAM_PROJECT_CONFIG[code];
+export async function getTeamProjectConfig(team) {
+  let problem = null;
+  if (team?.pathId) {
+    problem = await BuildProblem.findOne({ pathId: team.pathId });
+  }
+  if (!problem) {
+    problem = await BuildProblem.findOne();
+  }
+  if (!problem) {
+    return null;
   }
 
-  // Fallback to path-01 / TEAM01 default if team is unmapped
-  return TEAM_PROJECT_CONFIG.TEAM01;
+  const componentIds = (problem.components || [])
+    .map((c) => c.id)
+    .filter(Boolean);
+  const componentNames = (problem.components || [])
+    .map((c) => c.name)
+    .filter(Boolean);
+
+  return {
+    pathId: problem.pathId,
+    projectName: problem.pathTitle,
+    componentIds,
+    componentNames,
+  };
 }
 
 /**
- * Checks whether a component belongs to the team's assigned project
+ * Checks whether a component belongs to the team's assigned project in MongoDB
  * @param {Object} team - The team object from DB or session
  * @param {Object} component - The component object (with name, id, or _id)
+ * @param {Object} [projectConfig] - Optional preloaded project config from getTeamProjectConfig
  * @returns {boolean}
  */
-export function isComponentAllowedForTeam(team, component) {
+export function isComponentAllowedForTeam(team, component, projectConfig) {
   if (!component) return false;
-  const config = getTeamProjectConfig(team);
-  if (!config) return true;
+  // If no project restriction configured in DB, allow access
+  if (!projectConfig || !projectConfig.componentIds || projectConfig.componentIds.length === 0) {
+    return true;
+  }
 
   const compId = (component.id || '').toLowerCase().trim();
   const compNameNorm = normalize(component.name);
 
   // Check by ID
-  if (compId && config.componentIds.some(id => id.toLowerCase() === compId)) {
+  if (compId && projectConfig.componentIds.some((id) => id.toLowerCase() === compId)) {
     return true;
   }
 
-  // Check by name
-  if (config.componentNames.some(name => normalize(name) === compNameNorm)) {
+  // Check by exact normalized name
+  if (projectConfig.componentNames.some((name) => normalize(name) === compNameNorm)) {
     return true;
   }
 
-  // Also check if component name contains key identifiers (e.g. inductive proximity, esp8266, led 5mm)
-  if (config.componentIds.includes('proximity-sensor') && compNameNorm.includes('inductiveproximity')) {
-    return true;
-  }
-  if (config.componentIds.includes('esp8266') && compNameNorm.includes('esp8266')) {
-    return true;
-  }
-  if (config.componentIds.includes('led') && compNameNorm.includes('led5mm')) {
-    return true;
+  // Check substring containment against project components from MongoDB
+  for (const pName of projectConfig.componentNames) {
+    const pNorm = normalize(pName);
+    if (pNorm && (compNameNorm.includes(pNorm) || pNorm.includes(compNameNorm))) {
+      return true;
+    }
   }
 
   return false;

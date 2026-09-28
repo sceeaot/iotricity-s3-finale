@@ -15,7 +15,14 @@ export async function POST(request) {
   const team = await Team.findById(auth.user.id);
   if (!team) return Response.json({ error: 'Team not found' }, { status: 404 });
 
-  const stage = await Stage.findOne({ stageNumber: team.currentStage }).lean();
+  const stageQuery = team.pathId
+    ? { pathId: team.pathId, stageNumber: team.currentStage }
+    : { stageNumber: team.currentStage };
+
+  let stage = await Stage.findOne(stageQuery).lean();
+  if (!stage && team.pathId) {
+    stage = await Stage.findOne({ stageNumber: team.currentStage }).lean();
+  }
   if (!stage) return Response.json({ error: 'No active stage' }, { status: 400 });
 
   const state = await TeamStageState.findOne({ teamId: team._id, stageNumber: team.currentStage });
@@ -58,29 +65,30 @@ export async function POST(request) {
     }
 
     return Response.json({
-      correct: false,
+      success: false,
       message: penaltyMessage,
-      penaltyDeducted: penalty,
       coins: updatedCoins,
-      teamCoins: updatedCoins,
+      wrongPenalty: penalty,
     });
   }
 
-  const nextStage = team.currentStage + 1;
-  const completed = nextStage > 5;
-  const updatedCoins = Number(team.coins || 0) + Number(stage.coinsReward || 0);
-
   await TeamStageState.updateOne(
     { teamId: team._id, stageNumber: team.currentStage },
-    { isSolved: true, solvedAt: new Date() }
+    { $set: { isSolved: true, solvedAt: new Date() } }
   );
+
+  const updatedCoins = Number(team.coins || 0) + Number(stage.coinsReward || 0);
+  const nextStage = Number(team.currentStage) + 1;
 
   await Team.updateOne(
     { _id: team._id },
     {
+      $set: {
+        currentStage: nextStage,
+        status: nextStage > 5 ? 'completed' : 'active',
+      },
       $inc: { coins: stage.coinsReward },
       $push: { completedStages: stage.stageNumber },
-      $set: { currentStage: nextStage, ...(completed ? { status: 'completed' } : {}) },
     }
   );
 
@@ -92,12 +100,11 @@ export async function POST(request) {
   });
 
   return Response.json({
-    correct: true,
+    success: true,
+    message: stage.successMessage || `Stage ${stage.stageNumber} cleared!`,
     coinsEarned: stage.coinsReward,
-    nextStage,
-    completed,
-    successMessage: stage.successMessage,
     coins: updatedCoins,
-    teamCoins: updatedCoins,
+    nextStage,
+    successMessage: stage.successMessage,
   });
 }

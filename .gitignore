@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# contest data & private seed files
+private/
+*.seed.json
+contest-*.json
+scripts/temp-*

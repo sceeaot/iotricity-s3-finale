@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const schema = new mongoose.Schema({
-  pathId: { type: String, default: 'path-01', unique: true },
-  pathTitle: { type: String, default: 'PATH 01 — "THE SILENT WATCHER"' },
+  pathId: { type: String, required: true, unique: true },
+  pathTitle: { type: String, required: true },
   narrative: { type: String, required: true },
   missionBrief: { type: String, required: true },
   whatToBuild: { type: String, required: true },

@@ -30,6 +30,7 @@ type StageData = {
   wrongPenalty?: number;
   hints?: Hint[];
   successMessage?: string;
+  buildProblem?: BuildProblem | null;
 };
 
 const STAGE_REWARDS: Record<number, number> = {
@@ -67,140 +68,40 @@ function CornerMarks({ size = 9 }: { size?: number }) {
   );
 }
 
-type RequiredComponent = {
+type ProblemComponent = {
   id: string;
   name: string;
-  cyberpunkName: string;
-  category: "Microcontroller" | "Sensor" | "Actuator" | "Output" | "Input" | "Display";
-  role: string;
-  price: number;
-  imageUrl: string;
-  status: "Mandatory" | "Recommended" | "Optional Extension";
+  cyberpunkName?: string;
+  category?: string;
+  role?: string;
+  cost?: number;
+  price?: number;
+  imageUrl?: string;
+  status?: string;
 };
 
-const BUILD_COMPONENTS: RequiredComponent[] = [
-  {
-    id: "esp8266",
-    name: "ESP8266 (NodeMCU CP2102)",
-    cyberpunkName: "Neural Core Alpha",
-    category: "Microcontroller",
-    role: "Central 32-bit MCU unit with integrated Wi-Fi stack for MQTT telemetry transmission",
-    price: 250,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/51wy76q0icl_e36eddcd-6c05-4f3a-8279-bffebf1ed2aa.jpg?v=1743775624",
-    status: "Mandatory",
-  },
-  {
-    id: "pir-sensor",
-    name: "PIR Motion Sensor",
-    cyberpunkName: "Infrared Anomaly Tap",
-    category: "Sensor",
-    role: "Pyroelectric infrared motion detector sensing movement in restricted sectors",
-    price: 150,
-    imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqnVgDj7rsTNsH5bI0FioBkj9d0w18KKXkOlrRGa-Cr0-nfk0gGc0aKtp6&s=10",
-    status: "Mandatory",
-  },
-  {
-    id: "led",
-    name: "LED 5mm Pack",
-    cyberpunkName: "Perimeter Signal Lamp",
-    category: "Output",
-    role: "Physical optical indicator blinking immediately upon detected motion anomaly",
-    price: 80,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/5mm_red_led_p10.jpg?v=1743775759",
-    status: "Mandatory",
-  },
-  {
-    id: "ultrasonic-sensor",
-    name: "Ultrasonic Sensor (HC-SR04)",
-    cyberpunkName: "Sonar Pulse Emitter",
-    category: "Sensor",
-    role: "Non-contact sonar distance detection (2cm-400cm) for secondary perimeter tripwire",
-    price: 150,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/files/1_HC_SR04_Ultrasonic_Sensor_356da2f6-48fc-47f6-a1c8-562ea36f9eee.png?v=1752210992",
-    status: "Optional Extension",
-  },
-  {
-    id: "servo-motor",
-    name: "Servo Motor (SG90)",
-    cyberpunkName: "Kinetic Pivot Actuator",
-    category: "Actuator",
-    role: "180° mechanical actuation for automated barrier gate or sensor orientation gimbal",
-    price: 180,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/SG90_Micro_Servo_Motor.jpg?v=1730885918",
-    status: "Optional Extension",
-  },
-  {
-    id: "buzzer",
-    name: "Piezo Buzzer Module",
-    cyberpunkName: "Acoustic Beacon",
-    category: "Output",
-    role: "Audible alarm transducer producing warning frequencies upon sustained anomaly",
-    price: 80,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/9vbuzzer.jpg?v=1744008524",
-    status: "Optional Extension",
-  },
-  {
-    id: "push-button",
-    name: "Tactile Push Button",
-    cyberpunkName: "Quantum Trigger Switch",
-    category: "Input",
-    role: "Manual reset override switch for clearing anomaly mode and silencing alert",
-    price: 50,
-    imageUrl: "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/1_61a13ee6-0ac7-4eaa-b49e-3d75ebbc847d.png?v=1743773742",
-    status: "Optional Extension",
-  },
-];
+type ProblemSubPoint = {
+  id: string;
+  title: string;
+  points?: string;
+  badge?: string;
+  badgeColor?: string;
+  items: string[];
+};
 
-const SUB_POINTS = [
-  {
-    id: "REQ-01",
-    title: "PIR Motion Detection & ESP8266 Trigger",
-    points: "25 pts",
-    badge: "Sensory",
-    badgeColor: "border-emerald-400/40 text-emerald-300 bg-emerald-400/10",
-    items: [
-      "PIR sensor detects motion and triggers ESP8266 GPIO reliably.",
-      "Handles sensor settling time and debounce without ghost/false triggers.",
-      "Hardware wired safely with appropriate power rails and common GND.",
-    ],
-  },
-  {
-    id: "REQ-02",
-    title: "Physical Alert Signal (Perimeter Signal Lamp)",
-    points: "25 pts",
-    badge: "Signaling",
-    badgeColor: "border-amber-400/40 text-amber-300 bg-amber-400/10",
-    items: [
-      "On motion detected — LED blinks as an immediate physical alert signal.",
-      "Bonus: LED blink pattern changes based on frequency of motion (e.g. slow blink for single event, rapid blink for repeated events within 10s anomaly mode).",
-      "Correct current-limiting resistor attached to protect diode.",
-    ],
-  },
-  {
-    id: "REQ-03",
-    title: "MQTT Message Telemetry Transmission",
-    points: "25 pts",
-    badge: "MQTT",
-    badgeColor: "border-cyan-400/40 text-cyan-300 bg-cyan-400/10",
-    items: [
-      "ESP8266 connects to Wi-Fi and authenticates to the MQTT broker.",
-      "Publishes an MQTT message to broker topic (e.g. nexcorp/east/motion) on each trigger.",
-      "Structured message payload includes event identifiers or timestamp data.",
-    ],
-  },
-  {
-    id: "REQ-04",
-    title: "Live Subscriber Dashboard / Log Feed",
-    points: "25 pts",
-    badge: "Dashboard",
-    badgeColor: "border-blue-400/40 text-blue-300 bg-blue-400/10",
-    items: [
-      "A simple web page or terminal subscribes to the topic and displays live log of motion events with timestamps.",
-      "Bonus: Web dashboard shows total event count and flags anomaly status.",
-      "Bonus: System distinguishes between a single motion event and a sustained anomaly (multiple triggers within short window).",
-    ],
-  },
-];
+type BuildProblem = {
+  pathId: string;
+  pathTitle: string;
+  narrative: string;
+  missionBrief: string;
+  whatToBuild: string;
+  minimumRequirements?: string[];
+  bonusFeatures?: string[];
+  freeMaterials?: string[];
+  components?: ProblemComponent[];
+  subPoints?: ProblemSubPoint[];
+  allStagesCompleteMessage?: string;
+};
 
 export default function Dashboard() {
   const [data, setData] = useState<StageData | null>(null);
@@ -741,8 +642,14 @@ export default function Dashboard() {
               </div>
             )}
           </>
+        ) : !data.buildProblem ? (
+          <div className="mt-8 relative border border-white/20 bg-black/20 p-8 text-center text-white/50 backdrop-blur-sm animate-rise">
+            <CornerMarks />
+            <p className="font-mono text-sm tracking-wider uppercase text-white/70">NO MISSION SPECIFICATION LOADED</p>
+            <p className="mt-2 text-xs text-white/40">Mission brief and hardware requirements are loaded dynamically from database.</p>
+          </div>
         ) : (
-          /* Build Specification View */
+          /* Build Specification View (100% Dynamic from MongoDB) */
           <div className="mt-6 sm:mt-8 flex flex-col gap-6 sm:gap-8 animate-rise">
             {/* Mission Overview Card */}
             <div className="relative border border-white/20 bg-black/20 p-5 sm:p-8 backdrop-blur-sm">
@@ -750,10 +657,10 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/10 pb-5">
                 <div>
                   <span className="inline-block text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-emerald-400">
-                    PATH 01 // CORE ENGINEERS MISSION BRIEF
+                    {(data.buildProblem.pathTitle || 'MISSION BRIEF').split('—')[0].trim()} // CORE ENGINEERS MISSION BRIEF
                   </span>
                   <h2 className="mt-1 font-display text-2xl sm:text-3xl font-bold text-white">
-                    PATH 01 — "THE SILENT WATCHER"
+                    {data.buildProblem.pathTitle}
                   </h2>
                 </div>
                 <div className="flex items-center gap-3 bg-white/5 border border-white/15 px-4 py-2.5 rounded-sm shrink-0">
@@ -772,205 +679,237 @@ export default function Dashboard() {
               </div>
 
               <div className="mt-5 space-y-4 text-sm sm:text-base font-light text-white/70 leading-relaxed">
-                <div className="border-l-2 border-emerald-400/60 pl-3.5 py-1 bg-white/[0.02]">
-                  <p className="text-xs uppercase tracking-wider font-semibold text-emerald-400 mb-1">Mission Brief:</p>
-                  <p className="text-white/90 italic">
-                    "The east perimeter motion node is offline. Salvage the components, reconstruct the anomaly detector, and bring the grid back online. Motion must be detected, logged, and signalled. Every second the grid is dark, NEXCORP moves freely."
-                  </p>
-                </div>
+                {data.buildProblem.missionBrief && (
+                  <div className="border-l-2 border-emerald-400/60 pl-3.5 py-1 bg-white/[0.02]">
+                    <p className="text-xs uppercase tracking-wider font-semibold text-emerald-400 mb-1">Mission Brief:</p>
+                    <p className="text-white/90 italic">
+                      "{data.buildProblem.missionBrief}"
+                    </p>
+                  </div>
+                )}
 
-                <div>
-                  <p className="text-xs uppercase tracking-wider font-semibold text-white/50 mb-1">Operational Narrative:</p>
-                  <p>
-                    NEXCORP's east perimeter has gone dark. The anomaly detection grid — a network of motion sensors monitoring restricted zones — has been deliberately disabled. Someone is moving through the facility undetected. Your team has been deployed by the Breach Collective to rebuild the grid from salvaged components. Ghost Operatives must recover the system data scattered across the facility while Core Engineers reconstruct the detection node from scratch. The grid must go live before the next breach window opens.
-                  </p>
-                </div>
+                {data.buildProblem.narrative && (
+                  <div>
+                    <p className="text-xs uppercase tracking-wider font-semibold text-white/50 mb-1">Operational Narrative:</p>
+                    <p>{data.buildProblem.narrative}</p>
+                  </div>
+                )}
 
-                <div className="border border-white/15 bg-white/[0.03] p-4">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-white block mb-1">What to Build:</span>
-                  <p className="text-white font-medium">
-                    A PIR-based motion anomaly detector using ESP8266, PIR sensor, and LED.
-                  </p>
-                </div>
+                {data.buildProblem.whatToBuild && (
+                  <div className="border border-white/15 bg-white/[0.03] p-4">
+                    <span className="text-xs uppercase tracking-wider font-semibold text-white block mb-1">What to Build:</span>
+                    <p className="text-white font-medium">{data.buildProblem.whatToBuild}</p>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Sub-Points & Deliverables to Fulfill */}
-            <div>
-              <div className="mb-4">
-                <p className="text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-white/70">
-                  CORE REQUIREMENTS & EVALUATION CRITERIA (100 PTS TOTAL)
-                </p>
-                <p className="text-xs text-white/40">
-                  Minimum requirements must be demonstrated alongside optional anomaly bonus features.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {SUB_POINTS.map((sp) => (
-                  <div
-                    key={sp.id}
-                    className="relative border border-white/15 bg-black/25 p-5 sm:p-6 backdrop-blur-sm flex flex-col justify-between"
-                  >
-                    <CornerMarks size={6} />
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs text-white/40">{sp.id}</span>
-                          <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 border ${sp.badgeColor}`}>
-                            {sp.badge}
-                          </span>
-                        </div>
-                        <span className="font-mono text-xs font-bold text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5">
-                          {sp.points}
-                        </span>
-                      </div>
-                      <h3 className="font-sans text-base font-semibold text-white">
-                        {sp.title}
-                      </h3>
-                      <ul className="mt-3 space-y-2 text-xs sm:text-sm text-white/60">
-                        {sp.items.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-emerald-400 mt-0.5 shrink-0">▸</span>
-                            <span className="leading-relaxed">{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Components Required Section */}
-            <div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                <div>
+            {(data.buildProblem.subPoints || []).length > 0 && (
+              <div>
+                <div className="mb-4">
                   <p className="text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-white/70">
-                    COMPONENTS TO REDEEM FROM DISPATCH DESK (480 BC TOTAL)
+                    CORE REQUIREMENTS & EVALUATION CRITERIA
                   </p>
                   <p className="text-xs text-white/40">
-                    Basic materials provided free: breadboard, jumper wires, resistors.
+                    Evaluation criteria as configured in database.
                   </p>
                 </div>
-                <a
-                  href="/shop"
-                  className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1 self-start sm:self-auto"
-                >
-                  <span>Go to Component Shop</span>
-                  <span>→</span>
-                </a>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                {BUILD_COMPONENTS.map((comp) => (
-                  <div
-                    key={comp.id}
-                    className="relative border border-white/15 bg-black/25 p-4 sm:p-5 backdrop-blur-sm flex flex-col justify-between transition hover:border-white/30"
-                  >
-                    <CornerMarks size={6} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {data.buildProblem.subPoints?.map((sp) => (
+                    <div
+                      key={sp.id}
+                      className="relative border border-white/15 bg-black/25 p-5 sm:p-6 backdrop-blur-sm flex flex-col justify-between"
+                    >
+                      <CornerMarks size={6} />
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs text-white/40">{sp.id}</span>
+                            {sp.badge && (
+                              <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 border ${sp.badgeColor || 'border-emerald-400/40 text-emerald-300 bg-emerald-400/10'}`}>
+                                {sp.badge}
+                              </span>
+                            )}
+                          </div>
+                          {sp.points && (
+                            <span className="font-mono text-xs font-bold text-emerald-400 border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5">
+                              {sp.points}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-sans text-base font-semibold text-white">
+                          {sp.title}
+                        </h3>
+                        <ul className="mt-3 space-y-2 text-xs sm:text-sm text-white/60">
+                          {sp.items?.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-emerald-400 mt-0.5 shrink-0">▸</span>
+                              <span className="leading-relaxed">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Components Required Section */}
+            {(data.buildProblem.components || []).length > 0 && (() => {
+              const totalHardwareBC = (data.buildProblem?.components || []).reduce((acc, c) => acc + (c.cost ?? c.price ?? 0), 0);
+              const freeMaterialsText = (data.buildProblem?.freeMaterials || []).join(', ');
+
+              return (
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border border-white/20 bg-white/5 text-white/60">
-                          {comp.category}
-                        </span>
-                        <span
-                          className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-sm ${
-                            comp.status === "Mandatory"
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                              : comp.status === "Recommended"
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                              : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                          }`}
-                        >
-                          {comp.status}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-3 items-start">
-                        <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 border border-white/10 bg-[#080d19] p-1 flex items-center justify-center">
-                          <img
-                            src={comp.imageUrl}
-                            alt={comp.name}
-                            className="h-full w-full object-contain"
-                            loading="lazy"
-                          />
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="font-sans text-sm sm:text-base font-semibold text-white leading-snug">
-                            {comp.name}
-                          </h3>
-                          <p className="text-[11px] font-mono uppercase tracking-wider text-emerald-400/90 mt-0.5">
-                            {comp.category}
-                          </p>
-                          <p className="mt-1 text-xs text-white/50 leading-relaxed line-clamp-2">
-                            {comp.role}
-                          </p>
-                        </div>
-                      </div>
+                      <p className="text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-white/70">
+                        COMPONENTS TO REDEEM FROM DISPATCH DESK ({totalHardwareBC} BC TOTAL)
+                      </p>
+                      {freeMaterialsText && (
+                        <p className="text-xs text-white/40">
+                          Basic materials provided free: {freeMaterialsText}.
+                        </p>
+                      )}
                     </div>
-
-                    <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Image
-                          src="/currency.png"
-                          alt="BC"
-                          width={16}
-                          height={16}
-                          className="h-4 w-4 object-contain"
-                        />
-                        <span className="font-display text-base font-bold text-white">
-                          {comp.price} BC
-                        </span>
-                      </div>
-                      <a
-                        href="/shop"
-                        className="text-[11px] font-semibold uppercase tracking-wider text-white/70 hover:text-white transition"
-                      >
-                        Redeem in Shop →
-                      </a>
-                    </div>
+                    <a
+                      href="/shop"
+                      className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1 self-start sm:self-auto"
+                    >
+                      <span>Go to Component Shop</span>
+                      <span>→</span>
+                    </a>
                   </div>
-                ))}
-              </div>
-            </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                    {data.buildProblem?.components?.map((comp) => (
+                      <div
+                        key={comp.id}
+                        className="relative border border-white/15 bg-black/25 p-4 sm:p-5 backdrop-blur-sm flex flex-col justify-between transition hover:border-white/30"
+                      >
+                        <CornerMarks size={6} />
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-3">
+                            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border border-white/20 bg-white/5 text-white/60">
+                              {comp.category || 'Module'}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-sm ${
+                                comp.status === 'Mandatory'
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : comp.status === 'Recommended'
+                                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                  : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                              }`}
+                            >
+                              {comp.status || 'Mandatory'}
+                            </span>
+                          </div>
+
+                          <div className="flex gap-3 items-start">
+                            {comp.imageUrl && (
+                              <div className="relative h-14 w-14 sm:h-16 sm:w-16 shrink-0 border border-white/10 bg-[#080d19] p-1 flex items-center justify-center">
+                                <img
+                                  src={comp.imageUrl}
+                                  alt={comp.name}
+                                  className="h-full w-full object-contain"
+                                  loading="lazy"
+                                />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <h3 className="font-sans text-sm sm:text-base font-semibold text-white leading-snug">
+                                {comp.name}
+                              </h3>
+                              <p className="text-[11px] font-mono uppercase tracking-wider text-emerald-400/90 mt-0.5">
+                                {comp.cyberpunkName || comp.category || 'Module'}
+                              </p>
+                              {comp.role && (
+                                <p className="mt-1 text-xs text-white/50 leading-relaxed line-clamp-2">
+                                  {comp.role}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <Image
+                              src="/currency.png"
+                              alt="BC"
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 object-contain"
+                            />
+                            <span className="font-display text-base font-bold text-white">
+                              {comp.cost ?? comp.price ?? 0} BC
+                            </span>
+                          </div>
+                          <a
+                            href="/shop"
+                            className="text-[11px] font-semibold uppercase tracking-wider text-white/70 hover:text-white transition"
+                          >
+                            Redeem in Shop →
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Field Operational Protocol & Free Materials */}
-            <div className="relative border border-white/20 bg-black/20 p-5 sm:p-7 backdrop-blur-sm">
-              <CornerMarks />
-              <p className="text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-amber-400">
-                DISPATCH DESK & PROTOTYPING PROTOCOL
-              </p>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs sm:text-sm text-white/60">
-                <div className="border border-white/10 p-3.5 bg-white/[0.02]">
-                  <span className="text-white font-semibold block mb-1">1. Free Materials Provided</span>
-                  <p>Breadboard, jumper wires, current-limiting resistors, and USB cable are provided free at the hardware desk.</p>
+            {(() => {
+              const totalHardwareBC = (data.buildProblem?.components || []).reduce((acc, c) => acc + (c.cost ?? c.price ?? 0), 0);
+              const freeMaterialsText = (data.buildProblem?.freeMaterials || []).join(', ');
+
+              return (
+                <div className="relative border border-white/20 bg-black/20 p-5 sm:p-7 backdrop-blur-sm">
+                  <CornerMarks />
+                  <p className="text-[11px] font-sans font-semibold tracking-[0.16em] uppercase text-amber-400">
+                    DISPATCH DESK & PROTOTYPING PROTOCOL
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs sm:text-sm text-white/60">
+                    {freeMaterialsText && (
+                      <div className="border border-white/10 p-3.5 bg-white/[0.02]">
+                        <span className="text-white font-semibold block mb-1">1. Free Materials Provided</span>
+                        <p>{freeMaterialsText} are provided free at the hardware desk.</p>
+                      </div>
+                    )}
+                    <div className="border border-white/10 p-3.5 bg-white/[0.02]">
+                      <span className="text-white font-semibold block mb-1">2. Target Hardware: {totalHardwareBC} BC</span>
+                      <p>Redeem required components using credits earned from Ghost Operatives solving field stages.</p>
+                    </div>
+                    {data.buildProblem?.whatToBuild && (
+                      <div className="border border-white/10 p-3.5 bg-white/[0.02]">
+                        <span className="text-white font-semibold block mb-1">3. Live Node Demonstration</span>
+                        <p>{data.buildProblem.whatToBuild}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("stages")}
+                      className="w-full sm:w-auto border border-white/30 px-5 py-2.5 text-xs font-semibold tracking-wider uppercase text-white hover:bg-white/10 transition text-center"
+                    >
+                      ← RETURN TO STAGE CONSOLE
+                    </button>
+                    <a
+                      href="/shop"
+                      className="w-full sm:w-auto bg-white px-6 py-2.5 text-xs font-bold tracking-wider uppercase text-[#080d19] hover:bg-white/85 transition text-center"
+                    >
+                      OPEN COMPONENT SHOP →
+                    </a>
+                  </div>
                 </div>
-                <div className="border border-white/10 p-3.5 bg-white/[0.02]">
-                  <span className="text-white font-semibold block mb-1">2. Target Hardware: 480 BC</span>
-                  <p>Redeem LED (80 BC), PIR Sensor (150 BC), and ESP8266 (250 BC) using credits earned from Ghost Operatives solving stages.</p>
-                </div>
-                <div className="border border-white/10 p-3.5 bg-white/[0.02]">
-                  <span className="text-white font-semibold block mb-1">3. Live Grid Demonstration</span>
-                  <p>Demonstrate PIR trigger, LED alert, MQTT publish to nexcorp/east/motion, and live subscriber log before time expires.</p>
-                </div>
-              </div>
-              <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("stages")}
-                  className="w-full sm:w-auto border border-white/30 px-5 py-2.5 text-xs font-semibold tracking-wider uppercase text-white hover:bg-white/10 transition text-center"
-                >
-                  ← RETURN TO STAGE CONSOLE
-                </button>
-                <a
-                  href="/shop"
-                  className="w-full sm:w-auto bg-white px-6 py-2.5 text-xs font-bold tracking-wider uppercase text-[#080d19] hover:bg-white/85 transition text-center"
-                >
-                  OPEN COMPONENT SHOP →
-                </a>
-              </div>
-            </div>
+              );
+            })()}
           </div>
         )}
       </main>

@@ -14,6 +14,9 @@ export async function GET() {
   const team = await Team.findById(auth.user.id);
   if (!team) return Response.json({ error: 'Team not found' }, { status: 404 });
 
+  const validNames = componentsData.map((c) => c.name);
+  await Component.deleteMany({ name: { $nin: validNames } });
+
   let [components, purchases] = await Promise.all([
     Component.find({}),
     Purchase.find({ teamId: team._id }),
@@ -31,7 +34,7 @@ export async function GET() {
           name: c.name,
           cyberpunkName: c.cyberpunkName || c.name,
           price: c.price,
-          stock: typeof c.quantity === 'number' ? c.quantity : 12,
+          stock: typeof c.quantity === 'number' ? c.quantity : 1,
           description: c.description || '',
           category: c.category || 'Module',
           imageUrl: c.imageUrl || '',
@@ -41,11 +44,11 @@ export async function GET() {
     }
   }
 
-  const projectConfig = getTeamProjectConfig(team);
+  const projectConfig = await getTeamProjectConfig(team);
 
   const formattedComponents = components.map((c) => {
     const p = purchases.find((x) => x.componentId.toString() === c._id.toString());
-    const isAllowed = isComponentAllowedForTeam(team, c);
+    const isAllowed = isComponentAllowedForTeam(team, c, projectConfig);
 
     return {
       _id: c._id,

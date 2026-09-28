@@ -14,7 +14,7 @@
     "id": "led",
     "name": "LED 5mm Pack",
     "cyberpunkName": "Perimeter Signal Lamp",
-    "quantity": 12,
+    "quantity": 6,
     "category": "Output",
     "price": 80,
     "description": "Vibrant diffused 5mm indicator LEDs for status telemetry, logic high/low indication, and visual signaling.",
@@ -89,12 +89,12 @@
   },
   {
     "id": "proximity-sensor",
-    "name": "Inductive Proximity Sensor",
-    "cyberpunkName": "Flux Proximity Detector // Inductive",
+    "name": "Proximity Sensor",
+    "cyberpunkName": "Flux Proximity Detector",
     "quantity": 1,
     "category": "Sensor",
     "price": 220,
-    "description": "High-precision inductive proximity detection sensor switch for non-contact metallic target sensing.",
+    "description": "High-precision proximity detection sensor switch for non-contact metallic and object sensing.",
     "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqnVgDj7rsTNsH5bI0FioBkj9d0w18KKXkOlrRGa-Cr0-nfk0gGc0aKtp6&s=10",
     "productUrl": "https://robocraze.com/products/lj12a3-4-z-bx-approach-sensor-inductive-proximity-switch"
   },
@@ -143,25 +143,25 @@
     "productUrl": "https://robocraze.com/products/rain-drop-sensor-module"
   },
   {
-    "id": "mosfet",
-    "name": "IRFZ44N N-Channel MOSFET",
-    "cyberpunkName": "Solid-State Current Gate // IRFZ44N",
-    "quantity": 10,
-    "category": "Actuator",
-    "price": 90,
-    "description": "High-current N-channel power MOSFET (TO-220) designed for fast switching, motor drive, and high-power actuation.",
-    "imageUrl": "https://rukmini1.flixcart.com/image/1500/1500/xif0q/electronic-hobby-kit/b/q/x/irfz44n-n-channel-mosfet-to220-5-pcs-for-electronic-projects-esp-resized-original-imahhy3y86fpcqg6.jpeg?q=70",
-    "productUrl": "https://rukmini1.flixcart.com/image/1500/1500/xif0q/electronic-hobby-kit/b/q/x/irfz44n-n-channel-mosfet-to220-5-pcs-for-electronic-projects-esp-resized-original-imahhy3y86fpcqg6.jpeg?q=70"
-  },
-  {
     "id": "mq2",
     "name": "MQ-2 Gas & Smoke Sensor Module",
     "cyberpunkName": "Vapor Hazard Detector // MQ-2",
-    "quantity": 8,
+    "quantity": 1,
     "category": "Sensor",
     "price": 150,
     "description": "Electrochemical gas and smoke sensor module capable of detecting LPG, butane, propane, methane, alcohol, and hydrogen.",
     "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu6ZUcvEQ9F2IF48pC1HHiKeRIPneSNxKY2Djp47HEnw&s",
     "productUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu6ZUcvEQ9F2IF48pC1HHiKeRIPneSNxKY2Djp47HEnw&s"
+  },
+  {
+    "id": "mosfet",
+    "name": "IRFZ44N N-Channel MOSFET",
+    "cyberpunkName": "Solid-State Current Gate // IRFZ44N",
+    "quantity": 1,
+    "category": "Actuator",
+    "price": 90,
+    "description": "High-current N-channel power MOSFET (TO-220) designed for fast switching, motor drive, and high-power actuation.",
+    "imageUrl": "https://rukmini1.flixcart.com/image/1500/1500/xif0q/electronic-hobby-kit/b/q/x/irfz44n-n-channel-mosfet-to220-5-pcs-for-electronic-projects-esp-resized-original-imahhy3y86fpcqg6.jpeg?q=70",
+    "productUrl": "https://rukmini1.flixcart.com/image/1500/1500/xif0q/electronic-hobby-kit/b/q/x/irfz44n-n-channel-mosfet-to220-5-pcs-for-electronic-projects-esp-resized-original-imahhy3y86fpcqg6.jpeg?q=70"
   }
 ]
