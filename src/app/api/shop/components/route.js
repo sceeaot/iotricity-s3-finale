@@ -14,35 +14,10 @@ export async function GET() {
   const team = await Team.findById(auth.user.id);
   if (!team) return Response.json({ error: 'Team not found' }, { status: 404 });
 
-  const validNames = componentsData.map((c) => c.name);
-  await Component.deleteMany({ name: { $nin: validNames } });
-
   let [components, purchases] = await Promise.all([
     Component.find({}),
     Purchase.find({ teamId: team._id }),
   ]);
-
-  if (components.length < componentsData.length) {
-    const existingNames = new Set(components.map((c) => (c.name || '').toLowerCase().trim()));
-    const missing = componentsData.filter(
-      (c) => !existingNames.has((c.name || '').toLowerCase().trim())
-    );
-
-    if (missing.length > 0) {
-      await Component.insertMany(
-        missing.map((c) => ({
-          name: c.name,
-          cyberpunkName: c.cyberpunkName || c.name,
-          price: c.price,
-          stock: typeof c.quantity === 'number' ? c.quantity : 1,
-          description: c.description || '',
-          category: c.category || 'Module',
-          imageUrl: c.imageUrl || '',
-        }))
-      );
-      components = await Component.find({});
-    }
-  }
 
   const projectConfig = await getTeamProjectConfig(team);
 
@@ -55,7 +30,6 @@ export async function GET() {
       name: c.name,
       cyberpunkName: c.name,
       price: c.price,
-      stock: typeof c.stock === 'number' ? c.stock : 0,
       description: c.description,
       category: c.category || 'Module',
       imageUrl: c.imageUrl || '',

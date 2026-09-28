@@ -50,34 +50,29 @@ async function seed() {
     console.log('✓ Admin account already present.');
   }
 
-  // 2. Ensure General Electronic Components Catalog
-  const componentsPath = new URL('../data/components.json', import.meta.url);
-  if (fs.existsSync(componentsPath)) {
-    const componentsRaw = fs.readFileSync(componentsPath, 'utf8');
-    const componentsList = JSON.parse(componentsRaw);
+  // 2. Electronic Components Catalog (locked - never mutated if already present)
+  const componentCount = await Component.countDocuments();
+  if (componentCount === 0) {
+    const componentsPath = new URL('../data/components.json', import.meta.url);
+    if (fs.existsSync(componentsPath)) {
+      const componentsRaw = fs.readFileSync(componentsPath, 'utf8');
+      const componentsList = JSON.parse(componentsRaw);
 
-    // Remove obsolete components not in components.json
-    const validNames = componentsList.map((c) => c.name);
-    await Component.deleteMany({ name: { $nin: validNames } });
-
-    for (const c of componentsList) {
-      await Component.updateOne(
-        { name: c.name },
-        {
-          $set: {
-            name: c.name,
-            cyberpunkName: c.cyberpunkName || c.name,
-            price: c.price,
-            stock: typeof c.quantity === 'number' ? c.quantity : 1,
-            description: c.description || '',
-            category: c.category || 'Module',
-            imageUrl: c.imageUrl || '',
-          },
-        },
-        { upsert: true }
+      await Component.insertMany(
+        componentsList.map((c) => ({
+          name: c.name,
+          cyberpunkName: c.cyberpunkName || c.name,
+          price: c.price,
+          stock: typeof c.quantity === 'number' ? c.quantity : 1,
+          description: c.description || '',
+          category: c.category || 'Module',
+          imageUrl: c.imageUrl || '',
+        }))
       );
+      console.log(`✓ Initialized component catalog (${componentsList.length} items).`);
     }
-    console.log(`✓ Component catalog verified (${componentsList.length} items).`);
+  } else {
+    console.log(`✓ Components in MongoDB locked (${componentCount} items). No changes made.`);
   }
 
   // 3. Optional loading from an untracked, private JSON file (if present)

@@ -61,16 +61,6 @@ export async function POST(request) {
     );
   }
 
-  // Check stock for all components
-  for (const component of components) {
-    if (component.stock <= 0) {
-      return Response.json(
-        { error: `Component "${component.name}" is currently out of stock.` },
-        { status: 400 }
-      );
-    }
-  }
-
   const totalPrice = components.reduce((sum, c) => sum + c.price, 0);
 
   // Atomically check and deduct coins
@@ -88,13 +78,6 @@ export async function POST(request) {
       { status: 400 }
     );
   }
-
-  // Deduct stock for all purchased components
-  await Promise.all(
-    components.map((c) =>
-      Component.updateOne({ _id: c._id, stock: { $gt: 0 } }, { $inc: { stock: -1 } })
-    )
-  );
 
   const receiptId = generateReceiptId();
   const purchasedAt = new Date();

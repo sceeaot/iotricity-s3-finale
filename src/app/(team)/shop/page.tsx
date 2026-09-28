@@ -10,7 +10,6 @@ type Item = {
   name: string;
   cyberpunkName?: string;
   price: number;
-  stock?: number;
   description: string;
   category?: string;
   imageUrl?: string;
@@ -217,20 +216,12 @@ export default function Shop() {
     return cartItems.reduce((sum, item) => sum + item.price, 0);
   }, [cartItems]);
 
-  const hasOutOfStockInCart = useMemo(() => {
-    return cartItems.some((item) => typeof item.stock === "number" && item.stock <= 0);
-  }, [cartItems]);
-
   const notEnoughCartCredits = coins < cartTotal;
 
   function toggleCartItem(item: ItemWithMeta) {
     if (item.purchased) return;
     if (item.isProjectComponent === false) {
       window.alert("This component is restricted to another team's project build.");
-      return;
-    }
-    if (typeof item.stock === "number" && item.stock <= 0) {
-      window.alert("This component is currently out of stock.");
       return;
     }
     setCartIds((prev) => {
@@ -252,10 +243,6 @@ export default function Shop() {
 
   // Single Item Direct Buy
   async function buySingle(item: ItemWithMeta) {
-    if (typeof item.stock === "number" && item.stock <= 0) {
-      window.alert("This component is currently out of stock.");
-      return;
-    }
     if (coins < item.price) {
       window.alert(`Insufficient credits. You need ${item.price} BC to purchase ${item.name}.`);
       return;
@@ -287,11 +274,6 @@ export default function Shop() {
   // Multi-item Cart Checkout
   async function checkoutCart() {
     if (cartItems.length === 0) return;
-
-    if (hasOutOfStockInCart) {
-      window.alert("One or more items in your cart are out of stock. Please remove them before checking out.");
-      return;
-    }
 
     if (coins < cartTotal) {
       window.alert(
@@ -557,7 +539,6 @@ export default function Shop() {
               const notEnoughCredits = coins < item.price;
               const isRestricted = item.isProjectComponent === false;
               const inCart = cartIds.includes(item._id);
-              const isOutOfStock = typeof item.stock === "number" && item.stock <= 0;
 
               return (
                 <div
@@ -566,9 +547,7 @@ export default function Shop() {
                       ? "border-emerald-500/60 bg-emerald-950/15 shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                       : isRestricted
                         ? "border-white/10 bg-black/35 opacity-75 hover:border-white/20"
-                        : isOutOfStock && !item.purchased
-                          ? "border-white/10 bg-black/40 opacity-80 hover:border-white/20"
-                          : "border-white/20 bg-black/20 hover:border-white/40"
+                        : "border-white/20 bg-black/20 hover:border-white/40"
                     }`}
                 >
                   <CornerMarks size={8} />
@@ -579,7 +558,7 @@ export default function Shop() {
                       <img
                         src={item.resolvedImage}
                         alt={item.name}
-                        className={`w-full h-full object-contain transition-transform duration-300 ${isRestricted || (isOutOfStock && !item.purchased)
+                        className={`w-full h-full object-contain transition-transform duration-300 ${isRestricted
                             ? "grayscale-[40%] group-hover:scale-100"
                             : "group-hover:scale-105"
                           }`}
@@ -639,7 +618,7 @@ export default function Shop() {
                     </div>
 
                     <div className="flex flex-col gap-4">
-                      {/* Price & Stock Row */}
+                      {/* Price Row */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Image
@@ -653,17 +632,6 @@ export default function Shop() {
                             {item.price}
                           </span>
                         </div>
-
-                        {/* Stock status indicator */}
-                        {typeof item.stock === "number" && item.stock > 0 && item.stock <= 3 ? (
-                          <span className="text-[10px] font-mono uppercase text-amber-400 px-1.5 py-0.5 border border-amber-500/30 bg-amber-950/20">
-                            ONLY {item.stock} LEFT
-                          </span>
-                        ) : typeof item.stock === "number" && item.stock > 3 ? (
-                          <span className="text-[10px] font-mono uppercase text-white/40">
-                            STOCK: {item.stock}
-                          </span>
-                        ) : null}
                       </div>
 
                       {/* Action Buttons */}
@@ -708,19 +676,6 @@ export default function Shop() {
                             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                           </svg>
                           <span>RESTRICTED // OTHER PROJECT</span>
-                        </button>
-                      ) : isOutOfStock ? (
-                        <button
-                          type="button"
-                          disabled
-                          className="h-[44px] w-full bg-[#131722] border border-white/10 text-white/30 font-bold text-xs tracking-wider uppercase cursor-not-allowed select-none flex items-center justify-center gap-2"
-                          title="All units of this component have been claimed."
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
-                          </svg>
-                          <span>OUT OF STOCK</span>
                         </button>
                       ) : (
                         <div className="grid grid-cols-2 gap-2">
@@ -995,14 +950,12 @@ export default function Shop() {
 
                   <button
                     type="button"
-                    disabled={cartItems.length === 0 || notEnoughCartCredits || isCheckingOut || hasOutOfStockInCart}
+                    disabled={cartItems.length === 0 || notEnoughCartCredits || isCheckingOut}
                     onClick={checkoutCart}
                     className="col-span-2 h-[46px] border border-emerald-400 bg-emerald-400 text-black font-sans text-xs font-bold uppercase tracking-wider hover:bg-emerald-300 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {isCheckingOut ? (
                       <span>PROCESSING...</span>
-                    ) : hasOutOfStockInCart ? (
-                      <span>REMOVE OUT-OF-STOCK ITEMS</span>
                     ) : (
                       <>
                         <span>BUY TOGETHER ({cartTotal} BC)</span>
