@@ -1,7 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Users,
+  Trophy,
+  Package,
+  Layers,
+  Search,
+  RefreshCw,
+  LogOut,
+  Sliders,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  ArrowUpRight,
+  Shield,
+  Coins,
+  Radio,
+  X,
+  History,
+} from "lucide-react";
 
 type Team = {
   _id: string;
@@ -9,236 +28,740 @@ type Team = {
   teamName: string;
   coins: number;
   completedStages: number;
+  currentStage?: number;
   componentsRedeemed: number;
   status: string;
+  startTime?: string | null;
 };
 
 type Detail = {
-  team: { coins: number; status: string; completedStages: number[] };
-  purchases: { _id: string; componentName?: string; cyberpunkName?: string; dispatched: boolean }[];
-  transactions: { _id: string; reason: string; amount: number }[];
-  stageStates: { hintsRevealed: number[] }[];
+  team: { coins: number; status: string; completedStages: number[]; currentStage?: number };
+  purchases: { _id: string; componentName?: string; cyberpunkName?: string; dispatched: boolean; pricePaid?: number }[];
+  transactions: { _id: string; reason: string; amount: number; type?: string; timestamp?: string }[];
+  stageStates: { stageNumber?: number; hintsRevealed?: number[] }[];
 };
 
-export default function Admin() {
+function CornerMarks({ size = 10 }: { size?: number }) {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-[1px] -top-[1px] border-l-2 border-t-2 border-cyan/80"
+        style={{ width: size, height: size }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-[1px] -top-[1px] border-r-2 border-t-2 border-cyan/80"
+        style={{ width: size, height: size }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[1px] -left-[1px] border-b-2 border-l-2 border-cyan/80"
+        style={{ width: size, height: size }}
+      />
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[1px] -right-[1px] border-b-2 border-r-2 border-cyan/80"
+        style={{ width: size, height: size }}
+      />
+    </>
+  );
+}
+
+export default function AdminDashboard() {
   const [rows, setRows] = useState<Team[]>([]);
   const [selected, setSelected] = useState<Team | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+  const [overrideBusy, setOverrideBusy] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "waiting" | "completed">("all");
+  const [pendingDispatchesCount, setPendingDispatchesCount] = useState(0);
+  const [lastSyncTime, setLastSyncTime] = useState("");
   const router = useRouter();
 
-  async function load() {
-    const r = await fetch("/api/admin/leaderboard");
-    if (r.status === 401) {
-      router.push("/admin/login");
-      return;
+  async function loadData() {
+    try {
+      const [rLeaderboard, rDispatch] = await Promise.all([
+        fetch("/api/admin/leaderboard"),
+        fetch("/api/admin/dispatch"),
+      ]);
+
+      if (rLeaderboard.status === 401) {
+        router.push("/admin/login");
+        return;
+      }
+
+      if (rLeaderboard.ok) {
+        const data = await rLeaderboard.json();
+        setRows(data.leaderboard || []);
+        setLastSyncTime(new Date().toLocaleTimeString());
+      }
+
+      if (rDispatch.ok) {
+        const dData = await rDispatch.json();
+        const pending = (dData.purchases || []).filter((p: { dispatched: boolean }) => !p.dispatched).length;
+        setPendingDispatchesCount(pending);
+      }
+    } catch (e) {
+      console.error("Sync error:", e);
     }
-    setRows((await r.json()).leaderboard || []);
   }
 
   async function select(t: Team) {
     setSelected(t);
-    const r = await fetch(`/api/admin/team/${t._id}`);
-    setDetail(await r.json());
+    setLoadingDetail(true);
+    try {
+      const r = await fetch(`/api/admin/team/${t._id}`);
+      if (r.ok) {
+        const d = await r.json();
+        setDetail(d);
+      }
+    } finally {
+      setLoadingDetail(false);
+    }
   }
 
   useEffect(() => {
-    load();
-    const id = setInterval(load, 5000);
+    loadData();
+    const id = setInterval(loadData, 5000);
     return () => clearInterval(id);
   }, []);
 
   async function override(e: React.FormEvent) {
     e.preventDefault();
-    if (!selected) return;
-    await fetch("/api/admin/override", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        teamId: selected._id,
-        amount: Number(amount),
-        reason,
-      }),
-    });
-    setAmount("");
-    setReason("");
-    load();
-    select(selected);
+    if (!selected || !amount) return;
+    setOverrideBusy(true);
+    try {
+      await fetch("/api/admin/override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: selected._id,
+          amount: Number(amount),
+          reason: reason.trim() || "Manual organizer adjustment",
+        }),
+      });
+      setAmount("");
+      setReason("");
+      await loadData();
+      await select(selected);
+    } finally {
+      setOverrideBusy(false);
+    }
   }
 
   async function resetTeam() {
     if (!selected) return;
-    if (
-      !window.confirm(
-        `Reset ${selected.teamName} to zero progress? This clears coins, stages, and redeem history.`,
-      )
-    )
-      return;
     setResetting(true);
-    const r = await fetch("/api/admin/reset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        teamId: selected._id,
-        reason: "Manual team reset by admin",
-      }),
-    });
-    setResetting(false);
-    if (r.ok) {
-      load();
-      select(selected);
+    try {
+      const r = await fetch("/api/admin/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: selected._id,
+          reason: "Manual team reset by organizer",
+        }),
+      });
+      if (r.ok) {
+        setShowResetConfirm(false);
+        await loadData();
+        await select(selected);
+      }
+    } finally {
+      setResetting(false);
     }
   }
 
+  // Derived Metrics
+  const stats = useMemo(() => {
+    const totalTeams = rows.length;
+    const activeTeams = rows.filter((r) => r.status === "active").length;
+    const completedRuns = rows.filter((r) => r.completedStages >= 5 || r.status === "completed").length;
+    const totalCreditsInCirculation = rows.reduce((acc, r) => acc + (r.coins || 0), 0);
+    const totalPartsRedeemed = rows.reduce((acc, r) => acc + (r.componentsRedeemed || 0), 0);
+    const topTeam = rows[0] || null;
+
+    return {
+      totalTeams,
+      activeTeams,
+      completedRuns,
+      totalCreditsInCirculation,
+      totalPartsRedeemed,
+      topTeam,
+    };
+  }, [rows]);
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((t) => {
+      const matchSearch = t.teamName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "completed"
+          ? t.completedStages >= 5 || t.status === "completed"
+          : t.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [rows, searchQuery, statusFilter]);
+
   return (
-    <>
-      <header className="border-b border-line py-[22px] max-[760px]:py-4 w-full print:hidden">
-        <div className="w-[min(1180px,calc(100%-40px))] max-[760px]:w-[min(calc(100%-28px),620px)] mx-auto flex flex-row items-center justify-between gap-5 max-[760px]:gap-3">
-          <a className="font-bold tracking-[.08em] no-underline" href="/">
-            IOTRICITY <span className="text-acid">// CONTROL</span>
-          </a>
-          <nav className="flex flex-row items-center gap-5 max-[760px]:gap-2.5 text-muted text-xs">
-            <a href="/admin/dispatch" className="hover:text-paper transition">
-              Dispatch queue
+    <div className="min-h-screen bg-[#040711] text-paper selection:bg-cyan selection:text-ink">
+      {/* Ambient background glows */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[300px] bg-cyan/5 blur-[140px] rounded-full" />
+        <div className="absolute bottom-10 left-10 w-[450px] h-[350px] bg-blue-600/5 blur-[120px] rounded-full" />
+      </div>
+
+      {/* Top Mission Control Header */}
+      <header className="sticky top-0 z-40 border-b border-line/80 bg-[#040711]/90 backdrop-blur-md">
+        <div className="w-[min(1440px,calc(100%-40px))] mx-auto py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <a href="/" className="flex items-center gap-2 group">
+              <div className="p-1.5 border border-cyan/40 bg-cyan/10 text-cyan">
+                <Shield className="w-4 h-4" />
+              </div>
+              <span className="font-bold text-sm tracking-[0.1em] text-white">
+                IOTRICITY <span className="text-cyan">// CONTROL ROOM</span>
+              </span>
             </a>
+
+            <div className="hidden sm:flex items-center gap-2 ml-4 px-2.5 py-1 border border-line bg-[#091020] text-[11px] font-mono text-cyan">
+              <Radio className="w-3 h-3 text-cyan animate-pulse" />
+              <span>LIVE TELEMETRY // 5S SYNC</span>
+              {lastSyncTime && <span className="text-muted/70 text-[10px]">({lastSyncTime})</span>}
+            </div>
+          </div>
+
+          <nav className="flex items-center gap-3 font-mono text-xs">
+            <a
+              href="/admin/dispatch"
+              className="relative px-3 py-1.5 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 flex items-center gap-2 transition"
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>DISPATCH DESK</span>
+              {pendingDispatchesCount > 0 && (
+                <span className="px-1.5 py-0.2 bg-amber-500 text-black font-bold text-[10px] rounded-xs animate-pulse">
+                  {pendingDispatchesCount} PENDING
+                </span>
+              )}
+            </a>
+
+            <a
+              href="/leaderboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 border border-line bg-[#080e1d] hover:bg-white/5 text-muted hover:text-white flex items-center gap-1.5 transition"
+            >
+              <span>PUBLIC BOARD</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+
             <button
               onClick={async () => {
                 await fetch("/api/auth/logout", { method: "POST" });
                 router.push("/admin/login");
               }}
-              className="hover:text-paper cursor-pointer transition"
+              className="px-3 py-1.5 border border-line bg-transparent hover:bg-red-500/10 hover:border-red-500/40 text-muted hover:text-red-400 flex items-center gap-1.5 transition cursor-pointer"
             >
-              Disconnect
+              <LogOut className="w-3.5 h-3.5" />
+              <span>DISCONNECT</span>
             </button>
           </nav>
         </div>
       </header>
-      <main className="py-[42px] pb-[70px] max-[760px]:pt-[28px] w-[min(1180px,calc(100%-40px))] max-[760px]:w-[min(calc(100%-28px),620px)] mx-auto">
-        <div className="mb-[28px]">
-          <p className="text-acid text-[11px] tracking-[.16em] uppercase">ORGANIZER CONSOLE / AUTO-SYNC 5S</p>
-          <h1 className="text-[42px] mt-[12px] mb-0 font-bold">Live field status</h1>
-        </div>
-        <div className="grid grid-cols-[1.4fr_0.8fr] max-[760px]:grid-cols-1 gap-5">
-          <section className="border border-line bg-[#101313]/78 p-6 print:border-[#aaa] overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    #
-                  </th>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    Team
-                  </th>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    Stages
-                  </th>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    Credits
-                  </th>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    Parts
-                  </th>
-                  <th className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-muted text-[10px] tracking-[.1em] uppercase">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((t) => (
-                  <tr
-                    key={t._id}
-                    onClick={() => select(t)}
-                    className={`cursor-pointer transition ${
-                      selected?._id === t._id ? "bg-[#26332b]" : "hover:bg-white/5"
+
+      <main className="w-[min(1440px,calc(100%-40px))] mx-auto py-6 sm:py-8 space-y-6">
+        {/* KPI Telemetry Banner */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="relative border border-line bg-[#080d1a]/80 p-4 backdrop-blur-xs">
+            <CornerMarks size={8} />
+            <div className="flex items-center justify-between text-muted text-[11px] font-mono uppercase tracking-wider mb-2">
+              <span>SQUAD POOL</span>
+              <Users className="w-4 h-4 text-cyan" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-bold font-display text-white">{stats.totalTeams}</span>
+              <span className="text-xs font-mono text-cyan">{stats.activeTeams} ACTIVE RUNS</span>
+            </div>
+          </div>
+
+          <div className="relative border border-line bg-[#080d1a]/80 p-4 backdrop-blur-xs">
+            <CornerMarks size={8} />
+            <div className="flex items-center justify-between text-muted text-[11px] font-mono uppercase tracking-wider mb-2">
+              <span>APEX SQUAD (#1)</span>
+              <Trophy className="w-4 h-4 text-yellow-400" />
+            </div>
+            <div className="truncate">
+              <span className="text-xl sm:text-2xl font-bold font-display text-white truncate block">
+                {stats.topTeam?.teamName || "N/A"}
+              </span>
+              <span className="text-xs font-mono text-muted">
+                {stats.topTeam ? `${stats.topTeam.coins} BC • ${stats.topTeam.completedStages}/5 STAGES` : "No scores yet"}
+              </span>
+            </div>
+          </div>
+
+          <div className="relative border border-line bg-[#080d1a]/80 p-4 backdrop-blur-xs">
+            <CornerMarks size={8} />
+            <div className="flex items-center justify-between text-muted text-[11px] font-mono uppercase tracking-wider mb-2">
+              <span>CREDITS CIRCULATING</span>
+              <Coins className="w-4 h-4 text-cyan" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-bold font-display text-white">
+                {stats.totalCreditsInCirculation.toLocaleString()}
+              </span>
+              <span className="text-xs font-mono text-muted">BC TOTAL</span>
+            </div>
+          </div>
+
+          <div className="relative border border-line bg-[#080d1a]/80 p-4 backdrop-blur-xs">
+            <CornerMarks size={8} />
+            <div className="flex items-center justify-between text-muted text-[11px] font-mono uppercase tracking-wider mb-2">
+              <span>HARDWARE DISPATCHES</span>
+              <Package className="w-4 h-4 text-amber-400" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-bold font-display text-white">{stats.totalPartsRedeemed}</span>
+              <span className="text-xs font-mono text-amber-300">
+                {pendingDispatchesCount > 0 ? `${pendingDispatchesCount} PENDING HANDOFF` : "ALL DISPATCHED"}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Main Grid: Squad Matrix (Left) & Tactical Inspector (Right) */}
+        <section className="grid grid-cols-1 xl:grid-cols-[1.55fr_1fr] gap-6 items-start">
+          {/* SQUAD MATRIX (TABLE) */}
+          <div className="space-y-4">
+            {/* Filter and Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter squads by callsign..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#090f1d] border border-line text-xs font-mono text-white placeholder-muted/50 outline-none focus:border-cyan"
+                />
+              </div>
+
+              {/* Status Tabs */}
+              <div className="flex items-center gap-1 font-mono text-[11px] bg-[#070c18] border border-line p-1">
+                {(["all", "active", "waiting", "completed"] as const).map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setStatusFilter(st)}
+                    className={`px-3 py-1 uppercase tracking-wider transition cursor-pointer ${
+                      statusFilter === st
+                        ? "bg-cyan text-[#040711] font-bold"
+                        : "text-muted hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap">
-                      {String(t.rank).padStart(2, "0")}
-                    </td>
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap">{t.teamName}</td>
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap">
-                      {t.completedStages}/5
-                    </td>
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap">{t.coins} BC</td>
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap">
-                      {t.componentsRedeemed}/4
-                    </td>
-                    <td className="border-b border-line p-3.5 px-2.5 text-left whitespace-nowrap text-acid text-[11px] uppercase font-bold">
-                      {t.status}
-                    </td>
-                  </tr>
+                    {st}
+                  </button>
                 ))}
-              </tbody>
-            </table>
-          </section>
-          <aside>
+              </div>
+            </div>
+
+            {/* Matrix Card */}
+            <div className="relative border border-line bg-[#080d1a]/85 backdrop-blur-md overflow-hidden">
+              <CornerMarks size={10} />
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-line bg-[#0c1424] font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+                      <th className="py-3 px-3.5 w-12 text-center">RANK</th>
+                      <th className="py-3 px-3.5">SQUAD CALLSIGN</th>
+                      <th className="py-3 px-3.5">STAGE PROGRESS</th>
+                      <th className="py-3 px-3.5 text-right">CREDITS</th>
+                      <th className="py-3 px-3.5 text-center">HARDWARE</th>
+                      <th className="py-3 px-3.5 text-center">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line/60 font-mono text-xs">
+                    {filteredRows.map((t) => {
+                      const isSelected = selected?._id === t._id;
+                      return (
+                        <tr
+                          key={t._id}
+                          onClick={() => select(t)}
+                          className={`cursor-pointer transition-colors duration-150 ${
+                            isSelected
+                              ? "bg-cyan/15 hover:bg-cyan/20 ring-1 ring-inset ring-cyan/50"
+                              : "hover:bg-white/5"
+                          }`}
+                        >
+                          <td className="py-3.5 px-3 text-center">
+                            <span
+                              className={`inline-block font-bold text-xs px-1.5 py-0.5 ${
+                                t.rank === 1
+                                  ? "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40"
+                                  : t.rank === 2
+                                  ? "bg-slate-300/20 text-slate-200 border border-slate-300/40"
+                                  : t.rank === 3
+                                  ? "bg-amber-600/20 text-amber-300 border border-amber-600/40"
+                                  : "text-muted"
+                              }`}
+                            >
+                              #{String(t.rank).padStart(2, "0")}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3.5">
+                            <div className="font-sans font-semibold text-white text-sm flex items-center gap-2">
+                              <span>{t.teamName}</span>
+                              {isSelected && <span className="text-[10px] font-mono text-cyan bg-cyan/10 px-1 border border-cyan/40">SELECTED</span>}
+                            </div>
+                            {t.startTime && (
+                              <span className="text-[10px] text-muted font-mono block">
+                                Started: {new Date(t.startTime).toLocaleTimeString()}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-3.5">
+                            <div className="flex items-center gap-1.5">
+                              {/* 5-segmented stage indicator */}
+                              {[1, 2, 3, 4, 5].map((stg) => {
+                                const isDone = stg <= t.completedStages;
+                                const isCurrent = stg === (t.currentStage ?? t.completedStages + 1);
+                                return (
+                                  <div
+                                    key={stg}
+                                    title={`Stage ${stg}: ${isDone ? "Cleared" : isCurrent ? "Active" : "Locked"}`}
+                                    className={`h-2.5 w-4 rounded-xs border transition-colors ${
+                                      isDone
+                                        ? "bg-cyan border-cyan"
+                                        : isCurrent
+                                        ? "bg-amber-400/40 border-amber-400 animate-pulse"
+                                        : "bg-black/30 border-line"
+                                    }`}
+                                  />
+                                );
+                              })}
+                              <span className="ml-1 text-[11px] text-muted">{t.completedStages}/5</span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-3.5 text-right font-bold text-cyan text-sm">
+                            {t.coins} <span className="text-[10px] font-normal text-muted">BC</span>
+                          </td>
+                          <td className="py-3.5 px-3.5 text-center">
+                            <span className="px-2 py-0.5 border border-line bg-black/40 text-[11px] text-paper">
+                              {t.componentsRedeemed}/4
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-3.5 text-center">
+                            <span
+                              className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded-xs border ${
+                                t.status === "active"
+                                  ? "border-cyan/50 bg-cyan/10 text-cyan"
+                                  : t.status === "completed"
+                                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
+                                  : "border-slate-500/40 bg-slate-500/10 text-slate-400"
+                              }`}
+                            >
+                              {t.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {filteredRows.length === 0 && (
+                <div className="p-12 text-center font-mono text-muted text-xs space-y-2">
+                  <p>No squad telemetry matched filter criteria.</p>
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setStatusFilter("all");
+                    }}
+                    className="text-cyan underline hover:text-white"
+                  >
+                    Reset filters
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* SQUAD COMMAND INSPECTOR (RIGHT PANEL) */}
+          <aside className="sticky top-20">
             {!selected ? (
-              <div className="border border-line bg-[#101313]/78 p-6">
-                <p className="text-muted">Select a team to inspect its run.</p>
+              <div className="relative border border-line/80 bg-[#080d1a]/85 p-8 text-center space-y-3">
+                <CornerMarks size={10} />
+                <div className="w-12 h-12 mx-auto border border-line bg-[#0d1424] flex items-center justify-center text-muted">
+                  <Sliders className="w-6 h-6 text-cyan/70" />
+                </div>
+                <h3 className="font-mono text-xs uppercase tracking-widest text-cyan">SQUAD TELEMETRY IDLE</h3>
+                <p className="text-muted text-xs font-sans max-w-xs mx-auto leading-relaxed">
+                  Select any row in the live squad matrix to inspect puzzle progression, audit transaction history, issue manual credit overrides, or reset progress.
+                </p>
               </div>
             ) : (
-              <div className="border border-line bg-[#101313]/78 p-6">
-                <p className="text-acid text-[11px] tracking-[.16em] uppercase">TEAM DETAIL</p>
-                <h2 className="text-[27px] mt-[12px] mb-[24px] font-bold">{selected.teamName}</h2>
-                <div className="grid grid-cols-2 gap-3 mb-[24px]">
-                  <div className="border-t-2 border-acid pt-[12px]">
-                    <span className="text-muted text-xs block">CREDITS</span>
-                    <strong className="block text-[30px] mt-[7px] font-bold">
-                      {detail?.team.coins ?? selected.coins}
-                    </strong>
+              <div className="relative border border-cyan/40 bg-[#080d1a]/95 backdrop-blur-md p-6 space-y-6 shadow-2xl">
+                <CornerMarks size={12} />
+
+                {/* Squad Header Bar */}
+                <div className="flex items-start justify-between border-b border-line pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-cyan bg-cyan/10 px-2 py-0.5 border border-cyan/30">
+                        RANK #{selected.rank}
+                      </span>
+                      <span
+                        className={`text-[10px] font-mono uppercase px-2 py-0.5 border ${
+                          selected.status === "active"
+                            ? "border-cyan/50 text-cyan bg-cyan/5"
+                            : selected.status === "completed"
+                            ? "border-emerald-500/50 text-emerald-400 bg-emerald-500/5"
+                            : "border-slate-500/40 text-slate-400"
+                        }`}
+                      >
+                        {selected.status}
+                      </span>
+                    </div>
+                    <h2 className="text-2xl font-bold font-display text-white mt-1.5">{selected.teamName}</h2>
+                    {loadingDetail && (
+                      <span className="text-[10px] font-mono text-cyan flex items-center gap-1 mt-1">
+                        <RefreshCw className="w-3 h-3 animate-spin" /> Fetching live telemetry...
+                      </span>
+                    )}
                   </div>
-                  <div className="border-t-2 border-acid pt-[12px]">
-                    <span className="text-muted text-xs block">STAGES</span>
-                    <strong className="block text-[30px] mt-[7px] font-bold">
-                      {detail?.team.completedStages.length ?? selected.completedStages}/5
-                    </strong>
+                  <button
+                    onClick={() => {
+                      setSelected(null);
+                      setDetail(null);
+                    }}
+                    className="p-1 text-muted hover:text-white transition"
+                    title="Close squad panel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Quick Squad Balance & Stage Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-[#0d1527] border border-line">
+                    <span className="text-[10px] font-mono text-muted uppercase tracking-wider block">
+                      CURRENT CREDITS
+                    </span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-2xl font-bold font-display text-cyan">
+                        {detail?.team.coins ?? selected.coins}
+                      </span>
+                      <span className="text-xs font-mono text-muted">BC</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-[#0d1527] border border-line">
+                    <span className="text-[10px] font-mono text-muted uppercase tracking-wider block">
+                      STAGES CLEARED
+                    </span>
+                    <div className="flex items-baseline gap-1 mt-1">
+                      <span className="text-2xl font-bold font-display text-white">
+                        {detail?.team.completedStages?.length ?? selected.completedStages}
+                      </span>
+                      <span className="text-xs font-mono text-muted">/ 5</span>
+                    </div>
                   </div>
                 </div>
-                <p className="text-acid text-[11px] tracking-[.16em] uppercase">REDEEMED MODULES</p>
-                {(detail?.purchases || []).map((p) => (
-                  <p key={p._id} className="border-b border-line py-[10px] text-xs flex justify-between">
-                    <span>{p.componentName || p.cyberpunkName}</span>
-                    <span className="text-acid text-[11px] uppercase font-bold">
-                      {p.dispatched ? "DONE" : "PENDING"}
+
+                {/* Stages Cleared Detail List */}
+                <div className="space-y-2">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-cyan block">
+                    STAGE RUN PROGRESSION
+                  </span>
+                  <div className="grid grid-cols-5 gap-1.5">
+                    {[1, 2, 3, 4, 5].map((stg) => {
+                      const completed = (detail?.team.completedStages || []).includes(stg);
+                      return (
+                        <div
+                          key={stg}
+                          className={`p-2 text-center border font-mono ${
+                            completed
+                              ? "border-cyan/50 bg-cyan/15 text-cyan"
+                              : "border-line bg-black/30 text-muted/60"
+                          }`}
+                        >
+                          <div className="text-[9px] uppercase">STG {stg}</div>
+                          <div className="text-xs font-bold mt-0.5">{completed ? "✓" : "—"}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Redeemed Components Section */}
+                <div className="space-y-2 border-t border-line/60 pt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-cyan">
+                      HARDWARE REDEMPTIONS ({detail?.purchases?.length || 0})
                     </span>
-                  </p>
-                ))}
-                <p className="text-acid text-[11px] tracking-[.16em] uppercase mt-6">MANUAL CREDIT OVERRIDE</p>
-                <form onSubmit={override} className="mt-3">
-                  <input
-                    className="w-full border border-line bg-[#151c19] text-paper p-3.5 outline-none focus:border-acid"
-                    type="number"
-                    placeholder="+/- amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    required
-                  />
-                  <input
-                    className="w-full border border-line bg-[#151c19] text-paper p-3.5 outline-none focus:border-acid mt-2"
-                    placeholder="Reason"
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value)}
-                  />
-                  <button className="border border-acid bg-acid text-ink px-4 py-3 font-bold no-underline inline-block hover:bg-[#efffa8] cursor-pointer mt-2 w-full transition">
-                    APPLY
-                  </button>
-                </form>
-                <p className="text-acid text-[11px] tracking-[.16em] uppercase mt-6">TEAM RESET</p>
-                <button
-                  type="button"
-                  className="border border-line bg-transparent text-paper px-4 py-3 font-bold no-underline inline-block hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer mt-2 w-full transition"
-                  onClick={resetTeam}
-                  disabled={resetting}
-                >
-                  {resetting ? "RESETTING..." : "START TEAM FROM 0"}
-                </button>
+                    <a
+                      href="/admin/dispatch"
+                      className="text-[10px] font-mono text-amber-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>GO TO DISPATCH</span>
+                      <ArrowUpRight className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  {(detail?.purchases || []).length === 0 ? (
+                    <p className="text-xs font-mono text-muted/60 italic py-1">No hardware redeemed yet.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                      {detail?.purchases.map((p) => (
+                        <div
+                          key={p._id}
+                          className="flex items-center justify-between p-2.5 bg-[#0b1222] border border-line text-xs font-mono"
+                        >
+                          <span className="text-white truncate max-w-[190px]">
+                            {p.componentName || p.cyberpunkName || "Component"}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 text-[10px] font-bold rounded-xs ${
+                              p.dispatched
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                : "bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse"
+                            }`}
+                          >
+                            {p.dispatched ? "DISPATCHED" : "PENDING HANDOFF"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Transaction Log Audit */}
+                {detail?.transactions && detail.transactions.length > 0 && (
+                  <div className="space-y-2 border-t border-line/60 pt-4">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-muted flex items-center gap-1.5">
+                      <History className="w-3 h-3 text-cyan" />
+                      RECENT TRANSACTIONS ({detail.transactions.length})
+                    </span>
+                    <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1 text-[11px] font-mono">
+                      {detail.transactions.slice(0, 5).map((tx) => (
+                        <div
+                          key={tx._id}
+                          className="flex items-center justify-between py-1 border-b border-line/40 text-muted"
+                        >
+                          <span className="truncate max-w-[200px] text-white/80">{tx.reason}</span>
+                          <span
+                            className={`font-bold shrink-0 ${
+                              tx.amount >= 0 ? "text-emerald-400" : "text-red-400"
+                            }`}
+                          >
+                            {tx.amount > 0 ? `+${tx.amount}` : tx.amount} BC
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual Credit Override Tool */}
+                <div className="space-y-3 border-t border-line/60 pt-4">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-cyan block">
+                    MANUAL CREDIT OVERRIDE
+                  </span>
+
+                  <form onSubmit={override} className="space-y-2.5">
+                    {/* Presets */}
+                    <div className="grid grid-cols-4 gap-1.5 font-mono text-xs">
+                      {["+50", "+100", "-50", "-100"].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => setAmount(preset.replace("+", ""))}
+                          className="py-1 border border-line bg-[#0d1424] hover:bg-cyan/20 hover:border-cyan text-muted hover:text-white transition cursor-pointer"
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        placeholder="+/- BC"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        required
+                        className="w-28 px-3 py-2 bg-[#0d1527] border border-line text-white font-mono text-xs outline-none focus:border-cyan"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Reason (e.g. Bonus, penalty, fix)"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-[#0d1527] border border-line text-white font-mono text-xs outline-none focus:border-cyan"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={overrideBusy}
+                      className="w-full py-2.5 bg-cyan/90 hover:bg-cyan text-[#040711] font-mono font-bold text-xs uppercase tracking-wider transition cursor-pointer disabled:opacity-50"
+                    >
+                      {overrideBusy ? "EXECUTING OVERRIDE..." : "APPLY CREDIT ADJUSTMENT"}
+                    </button>
+                  </form>
+                </div>
+
+                {/* Danger Zone: Team Reset */}
+                <div className="border-t border-red-500/30 pt-4 space-y-2">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-red-400 block">
+                    DANGER ZONE // SQUAD RUN RESET
+                  </span>
+
+                  {!showResetConfirm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowResetConfirm(true)}
+                      className="w-full py-2 border border-red-500/40 bg-red-500/10 hover:bg-red-500/20 text-red-300 font-mono text-xs font-semibold uppercase tracking-wider transition cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+                      <span>RESET SQUAD PROGRESS TO ZERO</span>
+                    </button>
+                  ) : (
+                    <div className="p-3 border border-red-500/60 bg-red-950/40 space-y-2 font-mono text-xs animate-rise">
+                      <p className="text-red-200 text-[11px] leading-snug">
+                        Confirm reset for <strong>{selected.teamName}</strong>? All coins, solved stages, and redeemed hardware records will be wiped.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={resetTeam}
+                          disabled={resetting}
+                          className="flex-1 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer disabled:opacity-50"
+                        >
+                          {resetting ? "RESETTING..." : "CONFIRM WIPE"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowResetConfirm(false)}
+                          className="px-3 py-1.5 border border-line bg-black/40 text-muted hover:text-white transition cursor-pointer"
+                        >
+                          CANCEL
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </aside>
-        </div>
+        </section>
       </main>
-    </>
+    </div>
   );
 }

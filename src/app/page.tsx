@@ -33,7 +33,26 @@ export default function Home() {
         />
       </section>
 
-      <nav aria-label="Main navigation" className="absolute bottom-6 right-6 flex w-[calc(100%-3rem)] flex-col gap-3 sm:bottom-8 sm:right-8 sm:w-auto sm:flex-row">
+      <div className="absolute bottom-4 left-6 z-20 sm:bottom-8 sm:left-8">
+        <a
+          href="/admin"
+          className="group inline-flex items-center gap-1.5 font-mono text-[11px] tracking-[0.16em] uppercase text-white/40 transition-colors duration-200 hover:text-cyan"
+        >
+          <span>Admin</span>
+          <svg
+            className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-white/40 group-hover:text-cyan"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="2"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
+          </svg>
+        </a>
+      </div>
+
+      <nav aria-label="Main navigation" className="absolute bottom-12 right-6 flex w-[calc(100%-3rem)] flex-col gap-3 sm:bottom-8 sm:right-8 sm:w-auto sm:flex-row">
         <a
           className="flex min-h-11 items-center justify-center border border-white bg-white px-5 text-[10px] font-semibold text-[#080d19] no-underline transition hover:bg-white/85 sm:min-w-[110px]"
           href="/login"
