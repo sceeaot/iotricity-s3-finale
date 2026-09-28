@@ -15,7 +15,7 @@ type Team = {
 
 type Detail = {
   team: { coins: number; status: string; completedStages: number[] };
-  purchases: { _id: string; cyberpunkName: string; dispatched: boolean }[];
+  purchases: { _id: string; componentName?: string; cyberpunkName?: string; dispatched: boolean }[];
   transactions: { _id: string; reason: string; amount: number }[];
   stageStates: { hintsRevealed: number[] }[];
 };
@@ -199,7 +199,7 @@ export default function Admin() {
                 <p className="text-acid text-[11px] tracking-[.16em] uppercase">REDEEMED MODULES</p>
                 {(detail?.purchases || []).map((p) => (
                   <p key={p._id} className="border-b border-line py-[10px] text-xs flex justify-between">
-                    {p.cyberpunkName}
+                    <span>{p.componentName || p.cyberpunkName}</span>
                     <span className="text-acid text-[11px] uppercase font-bold">
                       {p.dispatched ? "DONE" : "PENDING"}
                     </span>

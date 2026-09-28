@@ -916,8 +916,8 @@ export default function Dashboard() {
                           <h3 className="font-sans text-sm sm:text-base font-semibold text-white leading-snug">
                             {comp.name}
                           </h3>
-                          <p className="text-[11px] font-mono text-emerald-400/90 mt-0.5">
-                            {comp.cyberpunkName}
+                          <p className="text-[11px] font-mono uppercase tracking-wider text-emerald-400/90 mt-0.5">
+                            {comp.category}
                           </p>
                           <p className="mt-1 text-xs text-white/50 leading-relaxed line-clamp-2">
                             {comp.role}

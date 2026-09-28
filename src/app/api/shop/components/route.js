@@ -1,2 +1,50 @@
-import connectDB from '@/lib/mongodb'; import Component from '@/models/Component'; import Purchase from '@/models/Purchase'; import Team from '@/models/Team'; import { requireTeam } from '@/lib/requireAuth';
-export async function GET(){const auth=await requireTeam();if(auth.error)return Response.json({error:auth.error},{status:auth.status});await connectDB();const team=await Team.findById(auth.user.id);const [components,purchases]=await Promise.all([Component.find({stock:{$gt:0}}),Purchase.find({teamId:team._id})]);return Response.json({teamCoins:team.coins,components:components.map(c=>{const p=purchases.find(x=>x.componentId.toString()===c._id.toString());return {_id:c._id,name:c.name,cyberpunkName:c.cyberpunkName,price:c.price,description:c.description,category:c.category||'Module',imageUrl:c.imageUrl||'',purchased:!!p,receiptId:p?.receiptId||null}})});}
+import connectDB from '@/lib/mongodb';
+import Component from '@/models/Component';
+import Purchase from '@/models/Purchase';
+import Team from '@/models/Team';
+import { requireTeam } from '@/lib/requireAuth';
+import { isComponentAllowedForTeam, getTeamProjectConfig } from '@/lib/teamProjects';
+
+export async function GET() {
+  const auth = await requireTeam();
+  if (auth.error) return Response.json({ error: auth.error }, { status: auth.status });
+
+  await connectDB();
+  const team = await Team.findById(auth.user.id);
+  if (!team) return Response.json({ error: 'Team not found' }, { status: 404 });
+
+  const [components, purchases] = await Promise.all([
+    Component.find({}),
+    Purchase.find({ teamId: team._id }),
+  ]);
+
+  const projectConfig = getTeamProjectConfig(team);
+
+  const formattedComponents = components.map((c) => {
+    const p = purchases.find((x) => x.componentId.toString() === c._id.toString());
+    const isAllowed = isComponentAllowedForTeam(team, c);
+
+    return {
+      _id: c._id,
+      name: c.name,
+      cyberpunkName: c.name,
+      price: c.price,
+      stock: typeof c.stock === 'number' ? c.stock : 0,
+      description: c.description,
+      category: c.category || 'Module',
+      imageUrl: c.imageUrl || '',
+      purchased: !!p,
+      receiptId: p?.receiptId || null,
+      isProjectComponent: isAllowed,
+      requiredRole: isAllowed ? 'Assigned Project Component' : 'Restricted (Other Team Project)',
+    };
+  });
+
+  return Response.json({
+    teamCode: team.teamCode,
+    teamName: team.teamName,
+    teamCoins: team.coins,
+    teamProject: projectConfig,
+    components: formattedComponents,
+  });
+}
