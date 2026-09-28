@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function Login() {
   const [code, setCode] = useState("");
@@ -11,59 +12,117 @@ export default function Login() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!code.trim()) return;
     setBusy(true);
     setError("");
-    const res = await fetch("/api/auth/team-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ teamCode: code }),
-    });
-    const data = await res.json();
-    setBusy(false);
-    if (!res.ok) {
-      setError(data.error);
-      return;
+    try {
+      const res = await fetch("/api/auth/team-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamCode: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Invalid team code");
+        setBusy(false);
+        return;
+      }
+      router.push("/dashboard");
+    } catch {
+      setError("Network error. Please try again.");
+      setBusy(false);
     }
-    router.push("/dashboard");
   }
 
   return (
-    <main className="py-[42px] pb-[70px] max-[760px]:pt-[28px] w-[min(1180px,calc(100%-40px))] max-[760px]:w-[min(calc(100%-28px),620px)] mx-auto max-w-[520px] animate-rise">
-      <a className="font-bold tracking-[.08em] no-underline" href="/">
-        IOTRICITY <span className="text-acid">// S03</span>
-      </a>
-      <div className="mt-[80px]">
-        <p className="text-acid text-[11px] tracking-[.16em] uppercase">FIELD ACCESS / TEAM NODE</p>
-        <h1 className="text-[46px] mt-[18px] mb-[12px] font-bold leading-tight">
-          Identify your<br />
-          <span className="text-acid">crew.</span>
-        </h1>
-        <p className="text-muted leading-[1.6]">Enter the code issued to your team to open the current challenge.</p>
-        <form onSubmit={submit} className="border border-line bg-[#101313]/78 p-6 mt-[30px]">
-          <label className="text-acid text-[11px] tracking-[.16em] uppercase block" htmlFor="team-code">
-            TEAM CODE
-          </label>
-          <input
-            id="team-code"
-            className="w-full border border-line bg-[#151c19] text-paper p-3.5 outline-none focus:border-acid mt-[12px] mb-[16px] uppercase"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="TEAM01"
-            required
-            autoFocus
-          />
-          {error && <p className="text-orange mb-[14px]">{error}</p>}
-          <button
-            className="border border-acid bg-acid text-ink px-4 py-3 font-bold no-underline inline-block hover:bg-[#efffa8] disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer w-full transition"
-            disabled={busy}
-          >
-            {busy ? "CONNECTING..." : "OPEN FIELD NODE"}
-          </button>
-        </form>
-        <a href="/admin/login" className="text-muted block mt-6 text-xs hover:text-paper transition">
-          Organizer access -&gt;
+    <main className="relative isolate min-h-screen min-h-[100svh] overflow-hidden bg-[#030713] text-white">
+      <Image
+        src="/background_landing.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="-z-20 object-cover object-center"
+      />
+      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[#020611]/25" />
+
+      <header className="absolute inset-x-0 top-0 flex items-start justify-between px-6 pt-6 sm:px-8 sm:pt-7">
+        <a href="/" className="transition hover:opacity-80">
+          <Image src="/scee_logo.png" alt="SCEE" width={64} height={25} className="h-auto w-24" />
         </a>
-      </div>
+        <div className="text-right font-sans">
+          <p className="text-[12px] uppercase tracking-[.1em] text-white/50">Time left</p>
+          <p className="text-[20px] font-medium tabular-nums">03H 55M 22S</p>
+        </div>
+      </header>
+
+      <section className="absolute inset-0 flex items-center justify-center px-6 pb-16 sm:pb-10 pointer-events-none">
+        <Image
+          src="/Iotricity-logo-hero.png"
+          alt="IoTRICITY 3: Build, solve, breach, survive"
+          width={754}
+          height={240}
+          priority
+          sizes="(max-width: 640px) 88vw, (max-width: 900px) 70vw, 754px"
+          className="h-auto w-[min(754px,88vw)] animate-rise"
+        />
+      </section>
+
+      <form
+        onSubmit={submit}
+        className="absolute bottom-6 right-6 flex w-[calc(100%-3rem)] flex-col items-end gap-2 sm:bottom-8 sm:right-8 sm:w-auto"
+      >
+        {error && (
+          <p className="text-[13px] font-medium tracking-wide text-[#ff4d4d] self-start sm:self-auto animate-rise">
+            {error}
+          </p>
+        )}
+        <div className="flex w-full items-center gap-3 sm:w-auto">
+          <div className="relative flex flex-1 items-center border border-white/25 bg-black/15 sm:w-[380px]">
+            <input
+              type="text"
+              id="team-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Enter your Team Code"
+              className="h-[60px] w-full bg-transparent px-6 font-sans text-[17px] font-normal text-white placeholder:text-white/60 focus:outline-none"
+              required
+              autoFocus
+              autoComplete="off"
+              spellCheck="false"
+            />
+            <span aria-hidden="true" className="pointer-events-none absolute -left-[1px] -top-[1px] h-[9px] w-[9px] border-l-2 border-t-2 border-white/90" />
+            <span aria-hidden="true" className="pointer-events-none absolute -right-[1px] -top-[1px] h-[9px] w-[9px] border-r-2 border-t-2 border-white/90" />
+            <span aria-hidden="true" className="pointer-events-none absolute -bottom-[1px] -left-[1px] h-[9px] w-[9px] border-b-2 border-l-2 border-white/90" />
+            <span aria-hidden="true" className="pointer-events-none absolute -bottom-[1px] -right-[1px] h-[9px] w-[9px] border-b-2 border-r-2 border-white/90" />
+          </div>
+          <button
+            type="submit"
+            disabled={busy}
+            aria-label="Submit team code"
+            className="flex h-[60px] w-[60px] shrink-0 items-center justify-center bg-white text-[#080d19] transition hover:bg-white/85 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {busy ? (
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#080d19] border-t-transparent" />
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </form>
     </main>
   );
 }

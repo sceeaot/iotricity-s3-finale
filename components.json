@@ -1,0 +1,145 @@
+[
+  {
+    "id": "esp8266",
+    "name": "ESP8266 (NodeMCU CP2102)",
+    "cyberpunkName": "Neural Core Alpha",
+    "quantity": 14,
+    "category": "Microcontroller",
+    "price": 250,
+    "description": "Wi-Fi enabled 32-bit microcontroller unit with integrated TCP/IP stack for IoT telemetry and MQTT mesh networking.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/51wy76q0icl_e36eddcd-6c05-4f3a-8279-bffebf1ed2aa.jpg?v=1743775624",
+    "productUrl": "https://www.amazon.in/Lolin-NodeMCU-ESP8266-CP2102-Wireless/dp/B010O1G1ES"
+  },
+  {
+    "id": "led",
+    "name": "LED 5mm Pack",
+    "cyberpunkName": "Perimeter Signal Lamp",
+    "quantity": 12,
+    "category": "Output",
+    "price": 80,
+    "description": "Vibrant diffused 5mm indicator LEDs for status telemetry, logic high/low indication, and visual signaling.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/5mm_red_led_p10.jpg?v=1743775759",
+    "productUrl": "https://robocraze.com/products/5mm-round-red-diffused-led-pack-of-10"
+  },
+  {
+    "id": "ultrasonic-sensor",
+    "name": "Ultrasonic Sensor (HC-SR04)",
+    "cyberpunkName": "Sonar Pulse Emitter // HC-SR04",
+    "quantity": 5,
+    "category": "Sensor",
+    "price": 150,
+    "description": "Non-contact ultrasonic range distance sensor module with dual transducers detecting 2cm to 400cm.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/files/1_HC_SR04_Ultrasonic_Sensor_356da2f6-48fc-47f6-a1c8-562ea36f9eee.png?v=1752210992",
+    "productUrl": "https://robocraze.com/products/hc-sr04-ultrasonic-distance-sensor-module"
+  },
+  {
+    "id": "submersible-pump",
+    "name": "Submersible Mini Water Pump",
+    "cyberpunkName": "Hydro Conduit Driver // DC Pump",
+    "quantity": 2,
+    "category": "Actuator",
+    "price": 200,
+    "description": "Low-noise submersible mini DC fluid pump for automated hydroponics and cooling loops.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/files/DC_Mini_Submersible_Water_Pump_Motor_12V_7350844f-75c7-4530-9a52-a25947cbf354.png?v=1752209940",
+    "productUrl": "https://robocraze.com/products/mini-submersible-water-pump-motor-12v"
+  },
+  {
+    "id": "servo-motor",
+    "name": "Servo Motor (SG90)",
+    "cyberpunkName": "Kinetic Pivot Actuator // SG90",
+    "quantity": 2,
+    "category": "Actuator",
+    "price": 180,
+    "description": "High-torque 9g micro servo motor capable of 180-degree precision positioning and mechanical actuation.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/SG90_Micro_Servo_Motor.jpg?v=1730885918",
+    "productUrl": "https://www.electronicwings.com/storage/PlatformSection/TopicContent/134/icon/Servo%20Motor.jpg"
+  },
+  {
+    "id": "push-button",
+    "name": "Tactile Push Button",
+    "cyberpunkName": "Quantum Trigger Switch // Tactile",
+    "quantity": 1,
+    "category": "Input",
+    "price": 50,
+    "description": "Momentary tactile push button switch with crisp tactile feedback for manual overrides and trigger inputs.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/1_61a13ee6-0ac7-4eaa-b49e-3d75ebbc847d.png?v=1743773742",
+    "productUrl": "https://robocraze.com/products/tactile-push-button-switch"
+  },
+  {
+    "id": "ir-module",
+    "name": "IR Sensor Module (Receiver / Obstacle)",
+    "cyberpunkName": "Infrared Beam Interceptor // IR-MOD",
+    "quantity": 2,
+    "category": "Sensor",
+    "price": 120,
+    "description": "Active infrared reflection obstacle detector and receiver module with onboard comparator and sensitivity trimmer.",
+    "imageUrl": "https://robocraze.com/cdn/shop/products/61gbfmxd_rl._sl1000.jpg?v=1743775544",
+    "productUrl": "https://robocraze.com/products/ir-sensor-module"
+  },
+  {
+    "id": "buzzer",
+    "name": "Piezo Buzzer Module",
+    "cyberpunkName": "Acoustic Beacon // Piezo Buzzer",
+    "quantity": 1,
+    "category": "Output",
+    "price": 80,
+    "description": "Audible alert transducer producing resonant frequencies for system alarms, heartbeat pings, and status alerts.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/9vbuzzer.jpg?v=1744008524",
+    "productUrl": "https://robocraze.com/products/3-3v-small-piezo-buzzer"
+  },
+  {
+    "id": "proximity-sensor",
+    "name": "Inductive Proximity Sensor",
+    "cyberpunkName": "Flux Proximity Detector // Inductive",
+    "quantity": 1,
+    "category": "Sensor",
+    "price": 220,
+    "description": "High-precision inductive proximity detection sensor switch for non-contact metallic target sensing.",
+    "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqnVgDj7rsTNsH5bI0FioBkj9d0w18KKXkOlrRGa-Cr0-nfk0gGc0aKtp6&s=10",
+    "productUrl": "https://robocraze.com/products/lj12a3-4-z-bx-approach-sensor-inductive-proximity-switch"
+  },
+  {
+    "id": "joystick-module",
+    "name": "Dual-Axis Analog Joystick",
+    "cyberpunkName": "Vector Navigation Gimbal // XY Joystick",
+    "quantity": 1,
+    "category": "Input",
+    "price": 170,
+    "description": "Dual-potentiometer 2-axis (X-Y) analog joystick module with integrated center select pushbutton.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/617jfacnfrl._sl1012.jpg?v=1743775747",
+    "productUrl": "https://robocraze.com/products/ps2-joystick-module-breakout-sensor"
+  },
+  {
+    "id": "dht11",
+    "name": "DHT11 Temp & Humidity Sensor",
+    "cyberpunkName": "Atmospheric Telemetry Node // DHT11",
+    "quantity": 1,
+    "category": "Sensor",
+    "price": 160,
+    "description": "Composite digital temperature and humidity sensor module with calibrated digital signal output.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/files/23_caf27183-a98a-4bfa-875d-08dad3c552d7.png?v=1743775741",
+    "productUrl": "https://robocraze.com/products/dht11-humidity-and-temperature-sensor-module"
+  },
+  {
+    "id": "8-segment-display",
+    "name": "8-Segment LED Display (Common Cathode)",
+    "cyberpunkName": "Numeric Glyph Matrix // 8-Segment",
+    "quantity": 1,
+    "category": "Display",
+    "price": 130,
+    "description": "Standard 7-segment display with decimal point (8 segments total) for real-time numeric readouts and counts.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/files/347.png?v=1743775830",
+    "productUrl": "https://robocraze.com/products/7-segment-led-display-common-cathode"
+  },
+  {
+    "id": "rain-sensor",
+    "name": "Raindrop Detection Sensor Module",
+    "cyberpunkName": "Precipitation Grid Sensor // Rain Node",
+    "quantity": 1,
+    "category": "Sensor",
+    "price": 140,
+    "description": "Nickel-plated raindrop detection board with separate comparator module for digital and analog precipitation sensing.",
+    "imageUrl": "https://cdn.shopify.com/s/files/1/0559/1970/6265/products/71wjp-s2kml._sl1000.jpg?v=1743775720",
+    "productUrl": "https://robocraze.com/products/rain-drop-sensor-module"
+  }
+]

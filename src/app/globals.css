@@ -1,5 +1,75 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "ClashDisplay-Extralight";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Extralight.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Extralight.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Extralight.ttf") format("truetype");
+  font-weight: 200;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Light";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Light.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Light.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Regular";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Regular.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Regular.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Medium";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Medium.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Medium.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Semibold";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Semibold.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Semibold.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Bold";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Bold.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Bold.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "ClashDisplay-Variable";
+  src: url("/Fonts/WEB/fonts/ClashDisplay-Variable.woff2") format("woff2"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Variable.woff") format("woff"),
+       url("/Fonts/WEB/fonts/ClashDisplay-Variable.ttf") format("truetype");
+  font-weight: 200 700;
+  font-display: swap;
+  font-style: normal;
+}
+
 @theme {
   --color-ink: #050811;
   --color-paper: #f1f5f9;
@@ -10,6 +80,8 @@
   --color-yellow: #ffcc00;
   --color-acid: #00e5ff;
   --color-orange: #ff3b30;
+  --font-display: "ClashDisplay-Variable", "Segoe UI", sans-serif;
+  --font-body: "ClashDisplay-Regular", "Segoe UI", sans-serif;
   --font-mono: "Courier New", Courier, monospace;
 
   --animate-rise: rise 0.5s ease both;
@@ -40,7 +112,11 @@
                 radial-gradient(circle at 15% 90%, #0d1933 0, transparent 40rem),
                 #050811;
     color: #f1f5f9;
-    font-family: "Courier New", Courier, monospace;
+    font-family: var(--font-body);
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
   }
   a {
     color: inherit;
