@@ -66,9 +66,11 @@ export async function POST(request) {
 
     return Response.json({
       success: false,
+      correct: false,
       message: penaltyMessage,
       coins: updatedCoins,
       wrongPenalty: penalty,
+      penaltyDeducted: penalty > 0,
     });
   }
 
@@ -101,6 +103,7 @@ export async function POST(request) {
 
   return Response.json({
     success: true,
+    correct: true,
     message: stage.successMessage || `Stage ${stage.stageNumber} cleared!`,
     coinsEarned: stage.coinsReward,
     coins: updatedCoins,

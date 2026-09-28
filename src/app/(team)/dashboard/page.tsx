@@ -107,6 +107,7 @@ export default function Dashboard() {
   const [data, setData] = useState<StageData | null>(null);
   const [answer, setAnswer] = useState("");
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("error");
   const [busy, setBusy] = useState(false);
   const [checkpointKey, setCheckpointKey] = useState("");
   const [checkpointBusy, setCheckpointBusy] = useState(false);
@@ -122,6 +123,7 @@ export default function Dashboard() {
       return;
     }
     setMessage("");
+    setMessageType("error");
     setCheckpointError("");
     setCheckpointSuccess("");
     setData(await response.json());
@@ -167,28 +169,47 @@ export default function Dashboard() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (!answer.trim() || busy) return;
     setBusy(true);
     setMessage("");
-    const response = await fetch("/api/stage/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answer }),
-    });
-    const result = await response.json();
-    setBusy(false);
-    setMessage(
-      result.correct
-        ? `Correct! +${result.coinsEarned} BC added.`
-        : result.message || result.error,
-    );
-    if (result.coins !== undefined) {
-      setData((prev) => (prev ? { ...prev, coins: result.coins, teamCoins: result.coins } : prev));
-    }
-    if (result.correct) {
-      setAnswer("");
-      setTimeout(load, 500);
-    } else if (result.penaltyDeducted) {
-      load();
+
+    try {
+      const response = await fetch("/api/stage/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answer }),
+      });
+      const result = await response.json();
+
+      const isCorrect = Boolean(result.success || result.correct);
+
+      if (isCorrect) {
+        const coinsEarned = result.coinsEarned ?? data?.coinsReward ?? 0;
+        setMessageType("success");
+        setMessage(`Correct answer. ${coinsEarned} BC Credited!`);
+        if (result.coins !== undefined) {
+          setData((prev) => (prev ? { ...prev, coins: result.coins, teamCoins: result.coins } : prev));
+        }
+        setAnswer("");
+        setTimeout(async () => {
+          await load();
+          setBusy(false);
+        }, 1500);
+      } else {
+        setBusy(false);
+        setMessageType("error");
+        setMessage(result.message || result.error || "Wrong answer. Try again.");
+        if (result.coins !== undefined) {
+          setData((prev) => (prev ? { ...prev, coins: result.coins, teamCoins: result.coins } : prev));
+        }
+        if (result.penaltyDeducted) {
+          load();
+        }
+      }
+    } catch {
+      setBusy(false);
+      setMessageType("error");
+      setMessage("Network error while validating answer. Please retry.");
     }
   }
 
@@ -200,8 +221,12 @@ export default function Dashboard() {
       body: JSON.stringify({ hintIndex: index }),
     });
     const result = await response.json();
-    if (!response.ok) setMessage(result.error);
-    else load();
+    if (!response.ok) {
+      setMessageType("error");
+      setMessage(result.error || "Failed to unlock hint.");
+    } else {
+      load();
+    }
   }
 
   async function logout() {
@@ -544,20 +569,35 @@ export default function Dashboard() {
                           </p>
                         )}
                         {message && (
-                          <p
-                            className={`text-xs font-medium ${
-                              message.startsWith("Correct") ? "text-emerald-400" : "text-[#ff4d4d]"
+                          <div
+                            className={`p-3 text-xs sm:text-sm font-medium border flex items-center gap-2.5 transition-all duration-300 ${
+                              messageType === "success"
+                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                                : "border-red-500/40 bg-red-500/10 text-[#ff4d4d]"
                             }`}
                           >
-                            {message}
-                          </p>
+                            {messageType === "success" ? (
+                              <svg className="w-4 h-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4 shrink-0 text-[#ff4d4d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )}
+                            <span>{message}</span>
+                          </div>
                         )}
                         <button
                           type="submit"
                           disabled={busy}
                           className="h-[46px] sm:h-[50px] w-full bg-white text-[#080d19] font-bold text-xs sm:text-sm tracking-wider uppercase transition hover:bg-white/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          {busy ? "CHECKING ANSWER..." : "SUBMIT ANSWER"}
+                          {busy
+                            ? messageType === "success"
+                              ? "ADVANCING TO NEXT STAGE..."
+                              : "CHECKING ANSWER..."
+                            : "SUBMIT ANSWER"}
                         </button>
                       </form>
                     </div>
