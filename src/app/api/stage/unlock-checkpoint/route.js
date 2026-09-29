@@ -29,9 +29,12 @@ export async function POST(request) {
   }
 
   const normalizedInput = String(key || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  const normalizedExpected = String(stage.checkpointKey).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const acceptedKeys = [
+    stage.checkpointKey,
+    ...(stage.checkpointAliases || [])
+  ].map((k) => String(k).trim().toUpperCase().replace(/[^A-Z0-9]/g, ''));
 
-  if (normalizedInput !== normalizedExpected) {
+  if (!acceptedKeys.includes(normalizedInput)) {
     return Response.json(
       {
         error: 'Invalid security code. Please check the secret code or passphrase and try again.',
