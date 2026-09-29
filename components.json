@@ -158,6 +158,28 @@
     "description": "Integrated pulse oximetry and heart-rate monitor sensor module with I2C interface, dual optical LEDs, photodetector, and low-noise analog signal processing.",
     "imageUrl": "https://m.media-amazon.com/images/I/61H43dZyAUL.jpg",
     "productUrl": "https://m.media-amazon.com/images/I/61H43dZyAUL.jpg"
+  },
+  {
+    "id": "keypad-4x4",
+    "name": "4x4 Matrix Membrane Keypad Module",
+    "cyberpunkName": "Hex Matrix Input Array // 4x4",
+    "category": "Input",
+    "price": 120,
+    "description": "16-button tactile matrix membrane keypad with 4 rows and 4 columns (0-9, A-D, *, #) and 8-pin female pitch connector for digital pin code entry.",
+    "imageUrl": "https://robocraze.com/cdn/shop/files/4x4_Matrix_Keyboard_Keypad_Module_1000x.png?v=1762941051",
+    "productUrl": "https://robocraze.com/products/4x4-matrix-membrane-keypad"
+  },
+  {
+    "id": "lcd-1602-i2c",
+    "name": "16x2 I2C Character LCD Display Module",
+    "cyberpunkName": "Alphanumeric Matrix Display // 16x2 I2C",
+    "category": "Output",
+    "price": 190,
+    "description": "16-character by 2-line alphanumeric LCD display with integrated PCF8574 I2C backpack interface for 2-wire serial telemetry display.",
+    "imageUrl": "https://robocraze.com/cdn/shop/files/1_fe9efdea-4f84-430a-b496-416fbf1ea34c.png",
+    "productUrl": "https://robocraze.com/products/16x2-lcd-display-with-i2c-interface"
   }
 ]
+
+
 
