@@ -25,6 +25,7 @@ import {
 
 type Team = {
   _id: string;
+  teamCode?: string;
   rank: number;
   teamName: string;
   coins: number;
@@ -36,7 +37,7 @@ type Team = {
 };
 
 type Detail = {
-  team: { coins: number; status: string; completedStages: number[]; currentStage?: number };
+  team: { _id?: string; teamCode?: string; teamName?: string; coins: number; status: string; completedStages: number[]; currentStage?: number };
   purchases: { _id: string; componentName?: string; cyberpunkName?: string; dispatched: boolean; pricePaid?: number }[];
   transactions: { _id: string; reason: string; amount: number; type?: string; timestamp?: string }[];
   stageStates: { stageNumber?: number; hintsRevealed?: number[] }[];
@@ -88,6 +89,11 @@ export default function AdminDashboard() {
   const [renameError, setRenameError] = useState("");
   const [renameSuccess, setRenameSuccess] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
+  const [showNukeModal, setShowNukeModal] = useState(false);
+  const [nukeConfirmText, setNukeConfirmText] = useState("");
+  const [nukeBusy, setNukeBusy] = useState(false);
+  const [nukeError, setNukeError] = useState("");
+  const [nukeSuccess, setNukeSuccess] = useState("");
   const router = useRouter();
 
   async function loadData() {
@@ -231,6 +237,37 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleNukeEvent() {
+    if (nukeConfirmText.trim().toUpperCase() !== "NUKE") return;
+    setNukeBusy(true);
+    setNukeError("");
+    setNukeSuccess("");
+    try {
+      const res = await fetch("/api/admin/nuke-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNukeError(data.error || "Failed to execute global event restart.");
+        return;
+      }
+      setNukeSuccess(data.message || "Global event restart complete: all team progress wiped cleanly.");
+      setSelected(null);
+      setDetail(null);
+      await loadData();
+      setTimeout(() => {
+        setShowNukeModal(false);
+        setNukeConfirmText("");
+        setNukeSuccess("");
+      }, 2500);
+    } catch {
+      setNukeError("Network error while attempting to execute global restart.");
+    } finally {
+      setNukeBusy(false);
+    }
+  }
+
   // Derived Metrics
   const stats = useMemo(() => {
     const totalTeams = rows.length;
@@ -252,7 +289,9 @@ export default function AdminDashboard() {
 
   const filteredRows = useMemo(() => {
     return rows.filter((t) => {
-      const matchSearch = t.teamName.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchSearch =
+        t.teamName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.teamCode && t.teamCode.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchStatus =
         statusFilter === "all"
           ? true
@@ -314,6 +353,21 @@ export default function AdminDashboard() {
               <span>PUBLIC BOARD</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </a>
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowNukeModal(true);
+                setNukeConfirmText("");
+                setNukeError("");
+                setNukeSuccess("");
+              }}
+              className="px-3 py-1.5 border border-red-500/50 bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-red-100 flex items-center gap-1.5 transition cursor-pointer shadow-[0_0_12px_rgba(239,68,68,0.2)] hover:shadow-[0_0_18px_rgba(239,68,68,0.4)]"
+              title="Restart event: Wipes all team progress and purchases while preserving questions and components"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-red-400 animate-pulse" />
+              <span className="font-bold tracking-wider">RESTART EVENT (NUKE)</span>
+            </button>
 
             <button
               onClick={async () => {
@@ -399,7 +453,7 @@ export default function AdminDashboard() {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Filter squads by callsign..."
+                  placeholder="Filter squads by callsign or team code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-4 py-2 bg-[#090f1d] border border-line text-xs font-mono text-white placeholder-muted/50 outline-none focus:border-cyan"
@@ -433,7 +487,7 @@ export default function AdminDashboard() {
                   <thead>
                     <tr className="border-b border-line bg-[#0c1424] font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
                       <th className="py-3 px-3.5 w-12 text-center">RANK</th>
-                      <th className="py-3 px-3.5">SQUAD CALLSIGN</th>
+                      <th className="py-3 px-3.5">SQUAD CALLSIGN / CODE</th>
                       <th className="py-3 px-3.5">STAGE PROGRESS</th>
                       <th className="py-3 px-3.5 text-right">CREDITS</th>
                       <th className="py-3 px-3.5 text-center">HARDWARE</th>
@@ -471,6 +525,11 @@ export default function AdminDashboard() {
                           <td className="py-3.5 px-3.5">
                             <div className="font-sans font-semibold text-white text-sm flex items-center gap-2">
                               <span>{t.teamName}</span>
+                              {t.teamCode && (
+                                <span className="font-mono text-[10px] font-bold text-cyan bg-cyan/10 px-1.5 py-0.5 border border-cyan/40 tracking-wider">
+                                  {t.teamCode}
+                                </span>
+                              )}
                               {isSelected && <span className="text-[10px] font-mono text-cyan bg-cyan/10 px-1 border border-cyan/40">SELECTED</span>}
                             </div>
                             {t.startTime && (
@@ -571,6 +630,11 @@ export default function AdminDashboard() {
                       <span className="font-mono text-[10px] uppercase tracking-widest text-cyan bg-cyan/10 px-2 py-0.5 border border-cyan/30">
                         RANK #{selected.rank}
                       </span>
+                      {selected.teamCode && (
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-amber-300 bg-amber-500/10 px-2 py-0.5 border border-amber-500/30">
+                          CODE: {selected.teamCode}
+                        </span>
+                      )}
                       <span
                         className={`text-[10px] font-mono uppercase px-2 py-0.5 border ${
                           selected.status === "active"
@@ -901,6 +965,163 @@ export default function AdminDashboard() {
           </aside>
         </section>
       </main>
+
+      {/* Global Event Restart / Nuke Modal */}
+      {showNukeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="relative w-full max-w-lg border border-red-500/60 bg-[#090d18] p-6 sm:p-7 shadow-[0_0_50px_rgba(239,68,68,0.25)] space-y-5">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-[1px] -top-[1px] border-l-2 border-t-2 border-red-500 w-3 h-3"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-[1px] -top-[1px] border-r-2 border-t-2 border-red-500 w-3 h-3"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-[1px] -left-[1px] border-b-2 border-l-2 border-red-500 w-3 h-3"
+            />
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-[1px] -right-[1px] border-b-2 border-r-2 border-red-500 w-3 h-3"
+            />
+
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-red-500/30 pb-3">
+              <div className="flex items-center gap-2.5 text-red-400">
+                <div className="p-1.5 border border-red-500/40 bg-red-950/60 text-red-400">
+                  <AlertTriangle className="w-5 h-5 text-red-400 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-bold font-display text-white text-base tracking-wide">
+                    EVENT RESTART // NUKE ALL PROGRESS
+                  </h3>
+                  <span className="font-mono text-[10px] text-red-400 uppercase tracking-widest block">
+                    HIGH-SEVERITY ADMINISTRATIVE OVERRIDE
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!nukeBusy) setShowNukeModal(false);
+                }}
+                className="p-1 text-muted hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body / Warnings */}
+            <div className="space-y-3.5 text-xs font-mono">
+              <div className="p-3 border border-red-500/40 bg-red-950/30 text-red-200 space-y-1.5 leading-relaxed">
+                <p className="font-bold text-red-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  CONFIRMATION REQUIRED: GLOBAL TELEMETRY PURGE
+                </p>
+                <p className="text-[11px] text-red-200/90">
+                  This operation resets the entire event state for <strong>all {rows.length} squads</strong> back to ground zero.
+                </p>
+              </div>
+
+              <div className="space-y-2 text-[11px]">
+                <div className="text-muted uppercase tracking-wider text-[10px]">What will be wiped:</div>
+                <ul className="space-y-1 text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <span className="text-red-400">✕</span> All squad Breach Credits reset to 0 BC
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-red-400">✕</span> All puzzle stage progression reset to Stage 1 (locks re-engaged)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-red-400">✕</span> All component hardware purchases wiped from squad inventories
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-red-400">✕</span> All audit transactions and run stopwatches cleared
+                  </li>
+                </ul>
+
+                <div className="text-emerald-400 uppercase tracking-wider text-[10px] pt-1">What remains untouched:</div>
+                <ul className="space-y-1 text-slate-400">
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Squad accounts, callsigns, passcodes & path assignments
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Build problem statements & objectives (zero modifications)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Puzzle questions, keys & solutions (zero modifications)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span> Hardware component catalog & specs (zero modifications)
+                  </li>
+                </ul>
+              </div>
+
+              {nukeError && (
+                <div className="p-2.5 border border-red-500 bg-red-950/70 text-red-200 text-xs">
+                  {nukeError}
+                </div>
+              )}
+
+              {nukeSuccess && (
+                <div className="p-2.5 border border-emerald-500 bg-emerald-950/70 text-emerald-200 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{nukeSuccess}</span>
+                </div>
+              )}
+
+              {/* Input validation safeguard */}
+              {!nukeSuccess && (
+                <div className="space-y-2 pt-2 border-t border-line">
+                  <label className="block text-[11px] text-muted">
+                    Type <span className="font-bold text-red-400">NUKE</span> to unlock the purge protocol:
+                  </label>
+                  <input
+                    type="text"
+                    value={nukeConfirmText}
+                    onChange={(e) => setNukeConfirmText(e.target.value)}
+                    placeholder="Type NUKE to confirm"
+                    disabled={nukeBusy}
+                    className="w-full px-3 py-2 bg-[#060a14] border border-red-500/50 text-white font-mono text-xs uppercase tracking-widest placeholder:text-muted/40 outline-none focus:border-red-400"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2.5 pt-2 border-t border-line/60">
+              <button
+                type="button"
+                onClick={() => setShowNukeModal(false)}
+                disabled={nukeBusy}
+                className="flex-1 py-2 border border-line bg-black/40 hover:bg-white/5 text-muted hover:text-white font-mono text-xs uppercase transition cursor-pointer disabled:opacity-50"
+              >
+                ABORT
+              </button>
+              <button
+                type="button"
+                onClick={handleNukeEvent}
+                disabled={nukeConfirmText.trim().toUpperCase() !== "NUKE" || nukeBusy}
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 disabled:bg-red-950/40 disabled:text-red-500/40 disabled:border-red-900/30 border border-red-500 text-white font-mono font-bold text-xs uppercase tracking-wider transition cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.3)] flex items-center justify-center gap-2"
+              >
+                {nukeBusy ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>PURGING TELEMETRY...</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>EXECUTE GLOBAL NUKE</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
