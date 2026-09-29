@@ -1,10 +1,59 @@
 import BuildProblem from '@/models/BuildProblem';
+import Component from '@/models/Component';
 
 /**
  * Normalizes string for case-insensitive matching
  */
 function normalize(str) {
   return (str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Maps required components in a BuildProblem directly to the actual Component dataset
+ * @param {Object} buildProblem 
+ * @returns {Promise<Object>}
+ */
+export async function populateBuildProblemComponents(buildProblem) {
+  if (!buildProblem || !Array.isArray(buildProblem.components) || buildProblem.components.length === 0) {
+    return buildProblem;
+  }
+
+  const dbComponents = await Component.find({}).lean();
+
+  const mapped = buildProblem.components.map((pComp) => {
+    const pNameNorm = normalize(pComp.name || pComp.id);
+    const match = dbComponents.find((c) => {
+      const cNameNorm = normalize(c.name);
+      return (
+        cNameNorm === pNameNorm ||
+        cNameNorm.includes(pNameNorm) ||
+        pNameNorm.includes(cNameNorm) ||
+        (pComp.id && c._id.toString() === pComp.id.toString())
+      );
+    });
+
+    if (match) {
+      return {
+        id: match._id.toString(),
+        _id: match._id.toString(),
+        name: match.name,
+        cyberpunkName: match.cyberpunkName || match.name,
+        cost: match.price,
+        price: match.price,
+        category: match.category,
+        description: match.description,
+        imageUrl: match.imageUrl,
+        status: pComp.status || 'Mandatory',
+      };
+    }
+
+    return pComp;
+  });
+
+  return {
+    ...buildProblem,
+    components: mapped,
+  };
 }
 
 /**
@@ -48,28 +97,34 @@ export async function getTeamProjectConfig(team) {
  */
 export function isComponentAllowedForTeam(team, component, projectConfig) {
   if (!component) return false;
+
+  const hasRestrictions = Boolean(
+    (projectConfig?.componentIds && projectConfig.componentIds.length > 0) ||
+    (projectConfig?.componentNames && projectConfig.componentNames.length > 0)
+  );
+
   // If no project restriction configured in DB, allow access
-  if (!projectConfig || !projectConfig.componentIds || projectConfig.componentIds.length === 0) {
+  if (!hasRestrictions) {
     return true;
   }
 
-  const compId = (component.id || '').toLowerCase().trim();
+  const compId = (component.id || component._id?.toString() || '').toLowerCase().trim();
   const compNameNorm = normalize(component.name);
 
   // Check by ID
-  if (compId && projectConfig.componentIds.some((id) => id.toLowerCase() === compId)) {
+  if (compId && projectConfig.componentIds?.some((id) => id.toLowerCase() === compId)) {
     return true;
   }
 
   // Check by exact normalized name
-  if (projectConfig.componentNames.some((name) => normalize(name) === compNameNorm)) {
+  if (projectConfig.componentNames?.some((name) => normalize(name) === compNameNorm)) {
     return true;
   }
 
   // Check substring containment against project components from MongoDB
-  for (const pName of projectConfig.componentNames) {
+  for (const pName of projectConfig.componentNames || []) {
     const pNorm = normalize(pName);
-    if (pNorm && (compNameNorm.includes(pNorm) || pNorm.includes(compNameNorm))) {
+    if (pNorm && (compNameNorm === pNorm || compNameNorm.includes(pNorm) || pNorm.includes(compNameNorm))) {
       return true;
     }
   }

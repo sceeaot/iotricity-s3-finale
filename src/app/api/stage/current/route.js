@@ -4,6 +4,7 @@ import Stage from '@/models/Stage';
 import BuildProblem from '@/models/BuildProblem';
 import TeamStageState from '@/models/TeamStageState';
 import { requireTeam } from '@/lib/requireAuth';
+import { populateBuildProblemComponents } from '@/lib/teamProjects';
 
 export async function GET() {
   const auth = await requireTeam();
@@ -31,6 +32,7 @@ export async function GET() {
   if (!buildProblem) {
     buildProblem = await BuildProblem.findOne().lean();
   }
+  buildProblem = await populateBuildProblemComponents(buildProblem);
 
   if (!stage) {
     return Response.json({

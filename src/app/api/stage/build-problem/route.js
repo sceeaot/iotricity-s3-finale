@@ -2,6 +2,7 @@ import connectDB from '@/lib/mongodb';
 import BuildProblem from '@/models/BuildProblem';
 import Team from '@/models/Team';
 import { requireTeam } from '@/lib/requireAuth';
+import { populateBuildProblemComponents } from '@/lib/teamProjects';
 
 export async function GET() {
   const auth = await requireTeam();
@@ -13,11 +14,13 @@ export async function GET() {
 
   let problem = null;
   if (pathId) {
-    problem = await BuildProblem.findOne({ pathId });
+    problem = await BuildProblem.findOne({ pathId }).lean();
   }
   if (!problem) {
-    problem = await BuildProblem.findOne();
+    problem = await BuildProblem.findOne().lean();
   }
+
+  problem = await populateBuildProblemComponents(problem);
 
   return Response.json({ problem });
 }

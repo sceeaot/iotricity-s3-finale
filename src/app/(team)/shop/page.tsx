@@ -103,7 +103,6 @@ export default function Shop() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"project" | "all">("project");
   const [teamCode, setTeamCode] = useState<string>("");
   const [teamProject, setTeamProject] = useState<{ pathId: string; projectName: string } | null>(null);
 
@@ -185,24 +184,19 @@ export default function Shop() {
   }, [items]);
 
   const displayedItems = useMemo(() => {
-    const baseList =
-      activeTab === "project"
-        ? itemsWithMeta.filter((i) => i.isProjectComponent)
-        : itemsWithMeta;
-
     const q = search.trim().toLowerCase();
-    if (!q) return baseList;
-    return baseList.filter((i) => {
+    if (!q) return itemsWithMeta;
+    return itemsWithMeta.filter((i) => {
       return (
         i.name.toLowerCase().includes(q) ||
         i.description?.toLowerCase().includes(q) ||
         i.resolvedCategory.toLowerCase().includes(q)
       );
     });
-  }, [itemsWithMeta, activeTab, search]);
+  }, [itemsWithMeta, search]);
 
   const projectComponentsCount = useMemo(() => {
-    return items.filter((i) => i.isProjectComponent).length;
+    return items.length;
   }, [items]);
 
   // Cart Items derived from itemsWithMeta
@@ -442,49 +436,22 @@ export default function Shop() {
           </div>
         </div>
 
-        {/* Project Navigation Tabs */}
+        {/* Project Requirements Bar */}
         <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("project")}
-              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${activeTab === "project"
-                  ? "bg-white text-black border border-white"
-                  : "bg-black/25 text-white/60 border border-white/10 hover:border-white/30 hover:text-white"
-                }`}
-            >
+            <div className="relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase flex items-center gap-2 bg-white text-black border border-white">
               <CornerMarks size={6} />
-              <span>PROJECT REQUIRED</span>
-              <span
-                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${activeTab === "project"
-                    ? "bg-black text-white"
-                    : "bg-white/10 text-white/70"
-                  }`}
-              >
-                {projectComponentsCount}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("all")}
-              className={`relative px-4 py-2.5 font-sans text-xs font-semibold tracking-wider uppercase transition flex items-center gap-2 cursor-pointer ${activeTab === "all"
-                  ? "bg-white text-black border border-white"
-                  : "bg-black/25 text-white/60 border border-white/10 hover:border-white/30 hover:text-white"
-                }`}
-            >
-              <CornerMarks size={6} />
-              <span>ALL CATALOG</span>
-              <span
-                className={`px-1.5 py-0.5 text-[10px] font-mono rounded ${activeTab === "all"
-                    ? "bg-black text-white"
-                    : "bg-white/10 text-white/70"
-                  }`}
-              >
+              <span>PROJECT REQUIRED MODULES</span>
+              <span className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-black text-white">
                 {items.length}
               </span>
-            </button>
+            </div>
           </div>
+          {teamProject?.projectName && (
+            <p className="text-xs font-mono uppercase tracking-wider text-emerald-400/90">
+              MISSION TARGET: <span className="text-white font-semibold">{teamProject.projectName}</span>
+            </p>
+          )}
         </div>
 
         {/* Search Bar & Module Counter */}
@@ -529,9 +496,7 @@ export default function Shop() {
               <p className="mt-2 text-sm text-white/50">
                 {search
                   ? `No components matched your search "${search}".`
-                  : activeTab === "project"
-                    ? "No assigned project components found. Switch to All Catalog to view full inventory."
-                    : "No components available in catalog."}
+                  : "No components mapped for this project."}
               </p>
             </div>
           ) : (

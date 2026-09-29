@@ -21,9 +21,11 @@ export async function GET() {
 
   const projectConfig = await getTeamProjectConfig(team);
 
-  const formattedComponents = components.map((c) => {
+  // Only mapped components assigned to the team's project will show up in the shop
+  const allowedComponents = components.filter((c) => isComponentAllowedForTeam(team, c, projectConfig));
+
+  const formattedComponents = allowedComponents.map((c) => {
     const p = purchases.find((x) => x.componentId.toString() === c._id.toString());
-    const isAllowed = isComponentAllowedForTeam(team, c, projectConfig);
 
     return {
       _id: c._id,
@@ -35,8 +37,8 @@ export async function GET() {
       imageUrl: c.imageUrl || '',
       purchased: !!p,
       receiptId: p?.receiptId || null,
-      isProjectComponent: isAllowed,
-      requiredRole: isAllowed ? 'Assigned Project Component' : 'Restricted (Other Team Project)',
+      isProjectComponent: true,
+      requiredRole: 'Assigned Project Component',
     };
   });
 
