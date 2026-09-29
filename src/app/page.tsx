@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="relative isolate min-h-screen min-h-[100svh] overflow-hidden bg-[#030713] text-white">
+    <main className="landing-page relative isolate min-h-screen min-h-[100svh] overflow-hidden bg-[#030713] text-white font-['Wix_Madefor_Display',sans-serif]">
       <Image
         src="/background_landing.png"
         alt=""
@@ -54,13 +54,13 @@ export default function Home() {
 
       <nav aria-label="Main navigation" className="absolute bottom-12 right-6 flex w-[calc(100%-3rem)] flex-col gap-3 sm:bottom-8 sm:right-8 sm:w-auto sm:flex-row">
         <a
-          className="flex min-h-11 items-center justify-center border border-white bg-white px-5 text-[10px] font-semibold text-[#080d19] no-underline transition hover:bg-white/85 sm:min-w-[110px]"
+          className="flex min-h-[68px] items-center justify-center border border-white bg-white px-10 text-[17px] font-semibold text-[#080d19] no-underline transition hover:bg-white/85"
           href="/login"
         >
           ENTER AS TEAM
         </a>
         <a
-          className="relative flex min-h-[68px] items-center justify-center border border-white/25 bg-black/15 px-6 font-sans text-[17px] font-medium text-white no-underline transition hover:bg-white/10 sm:min-w-[294px]"
+          className="relative flex min-h-[68px] items-center justify-center border border-white/25 bg-black/15 px-10 font-sans text-[17px] font-medium text-white no-underline transition hover:bg-white/10"
           href="/leaderboard"
         >
           VIEW LEADERBOARD

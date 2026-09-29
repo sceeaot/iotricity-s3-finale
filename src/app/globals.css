@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Wix+Madefor+Display:ital,wght@0,400..800;1,400..800&family=Wix+Madefor+Text:ital,wght@0,400..800;1,400..800&display=swap');
 @import "tailwindcss";
 
 @font-face {
@@ -81,9 +81,10 @@
   --color-yellow: #ffcc00;
   --color-acid: #00e5ff;
   --color-orange: #ff3b30;
-  --font-display: "ClashDisplay-Variable", "Segoe UI", sans-serif;
-  --font-body: "ClashDisplay-Regular", "Segoe UI", sans-serif;
-  --font-mono: "Courier New", Courier, monospace;
+  --font-display: "Wix Madefor Display", "Wix Madefor Text", sans-serif;
+  --font-body: "Wix Madefor Text", "Wix Madefor Display", sans-serif;
+  --font-mono: "Wix Madefor Text", monospace;
+  --font-sans: "Wix Madefor Display", "Wix Madefor Text", sans-serif;
 
   --animate-rise: rise 0.5s ease both;
 
@@ -105,6 +106,7 @@
   }
   html {
     background-color: #050811;
+    font-family: var(--font-body);
   }
   body {
     margin: 0;
@@ -140,7 +142,7 @@
   }
 }
 
-/* Wix Madefor Text applied everywhere except excluded pages (Landing, Team Login, Admin Login) */
+/* Wix Madefor fonts applied globally across all pages (Landing, Team, Admin) */
 .font-wix-mode,
 .font-wix-mode *,
 .font-wix-mode *::before,
@@ -149,11 +151,11 @@ html.font-wix-mode,
 html.font-wix-mode *,
 body.font-wix-mode,
 body.font-wix-mode * {
-  --font-display: "Wix Madefor Text", sans-serif !important;
-  --font-body: "Wix Madefor Text", sans-serif !important;
-  --font-mono: "Wix Madefor Text", sans-serif !important;
-  --font-sans: "Wix Madefor Text", sans-serif !important;
-  font-family: "Wix Madefor Text", sans-serif !important;
+  --font-display: "Wix Madefor Display", "Wix Madefor Text", sans-serif !important;
+  --font-body: "Wix Madefor Text", "Wix Madefor Display", sans-serif !important;
+  --font-mono: "Wix Madefor Text", monospace !important;
+  --font-sans: "Wix Madefor Display", "Wix Madefor Text", sans-serif !important;
+  font-family: "Wix Madefor Text", "Wix Madefor Display", sans-serif !important;
 }
 
 .font-wix-mode h1,
@@ -162,6 +164,16 @@ body.font-wix-mode * {
 .font-wix-mode h4,
 .font-wix-mode h5,
 .font-wix-mode h6,
+.font-wix-mode .font-display,
+.font-display {
+  font-family: "Wix Madefor Display", "Wix Madefor Text", sans-serif !important;
+}
+
+.landing-page,
+.landing-page * {
+  font-family: "Wix Madefor Display", "Wix Madefor Text", sans-serif !important;
+}
+
 .font-wix-mode p,
 .font-wix-mode span,
 .font-wix-mode div,
@@ -176,6 +188,6 @@ body.font-wix-mode * {
 .font-wix-mode code,
 .font-wix-mode pre,
 .font-wix-mode label {
-  font-family: "Wix Madefor Text", sans-serif !important;
+  font-family: "Wix Madefor Text", "Wix Madefor Display", sans-serif !important;
 }
 
