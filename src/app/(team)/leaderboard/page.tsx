@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
+import EventTimerDisplay from "@/components/EventTimerDisplay";
 
 type Row = {
   rank: number;
@@ -96,7 +97,13 @@ export default function Leaderboard() {
               priority
             />
           </a>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-3 sm:gap-5">
+            <EventTimerDisplay
+              label="TIME LEFT"
+              align="right"
+              labelClassName="text-[10px] sm:text-[11px] uppercase tracking-[.1em] text-white/50"
+              timeClassName="text-sm sm:text-base font-medium tabular-nums"
+            />
             <a
               href="/dashboard"
               className="flex items-center justify-center gap-1.5 sm:gap-2 bg-white px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold tracking-wider uppercase text-[#080d19] transition hover:bg-white/85 active:scale-95 shadow-sm"

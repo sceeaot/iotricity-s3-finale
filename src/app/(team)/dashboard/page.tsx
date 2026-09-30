@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import EventTimerDisplay from "@/components/EventTimerDisplay";
 
 type Hint = {
   index: number;
@@ -365,10 +366,13 @@ export default function Dashboard() {
               {data.teamName || "Team"}
             </h1>
           </div>
-          <div className="text-left font-sans sm:text-right shrink-0">
-            <p className="text-[11px] sm:text-[12px] uppercase tracking-[.1em] text-white/50">TIME LEFT</p>
-            <p className="text-lg sm:text-[20px] font-medium tabular-nums text-white">03H 55M 22S</p>
-          </div>
+          <EventTimerDisplay
+            label="TIME LEFT"
+            align="right"
+            className="text-left font-sans sm:text-right shrink-0"
+            labelClassName="text-[11px] sm:text-[12px] uppercase tracking-[.1em] text-white/50"
+            timeClassName="text-lg sm:text-[20px] font-medium tabular-nums"
+          />
         </div>
 
         {activeTab === "stages" ? (

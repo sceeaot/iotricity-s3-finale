@@ -22,6 +22,7 @@ import {
   History,
   Edit3,
 } from "lucide-react";
+import AdminTimerControl from "@/components/AdminTimerControl";
 
 type Team = {
   _id: string;
@@ -384,6 +385,9 @@ export default function AdminDashboard() {
       </header>
 
       <main className="w-[min(1440px,calc(100%-40px))] mx-auto py-6 sm:py-8 space-y-6">
+        {/* Mission Timer Control Panel */}
+        <AdminTimerControl />
+
         {/* KPI Telemetry Banner */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="relative border border-line bg-[#080d1a]/80 p-4 backdrop-blur-xs">

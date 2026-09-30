@@ -1,4 +1,5 @@
 import Image from "next/image";
+import EventTimerDisplay from "@/components/EventTimerDisplay";
 
 export default function Home() {
   return (
@@ -15,10 +16,7 @@ export default function Home() {
 
       <header className="absolute inset-x-0 top-0 flex items-start justify-between px-6 pt-6 sm:px-8 sm:pt-7">
         <Image src="/scee_logo.png" alt="SCEE" width={64} height={25} className="h-auto w-24" />
-        <div className="text-right font-sans">
-          <p className="text-[12px] uppercase tracking-[.1em] text-white/50">Time left</p>
-          <p className="text-[20px] font-medium tabular-nums">03H 55M 22S</p>
-        </div>
+        <EventTimerDisplay label="Time left" align="right" />
       </header>
 
       <section className="absolute inset-0 flex items-center justify-center px-6 pb-16 sm:pb-10">

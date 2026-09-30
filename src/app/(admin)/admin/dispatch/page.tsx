@@ -15,6 +15,7 @@ import {
   Coins,
   Radio,
 } from "lucide-react";
+import EventTimerDisplay from "@/components/EventTimerDisplay";
 
 type Purchase = {
   _id: string;
@@ -186,6 +187,12 @@ export default function DispatchPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <EventTimerDisplay
+              label="EVENT TIMER"
+              align="right"
+              labelClassName="text-[10px] uppercase tracking-[.1em] text-white/50"
+              timeClassName="text-sm font-medium tabular-nums"
+            />
             <a
               href="/admin/dashboard"
               className="px-3 py-1.5 border border-line bg-[#091020] hover:bg-white/5 text-muted hover:text-white font-mono text-xs transition flex items-center gap-1.5"
